@@ -65,7 +65,14 @@ def create_example(output: str | Path) -> Path:
                     "left ear, warm brown eyes, an olive utility jacket with a "
                     "distinctive amber shoulder stripe, charcoal shirt, and black gloves. "
                     "Keep her face, haircut, jacket and proportions unchanged."
-                )
+                ),
+                "reference_image": "images/character-mara-reference.png",
+                "reference_prompt": (
+                    "Design a polished recurring-character reference image for Mara. "
+                    "Use a neutral muted-grey studio background, clear silhouette, "
+                    "front three-quarter full-body pose and a separate readable face "
+                    "portrait inset. Graphic-novel concept-art presentation."
+                ),
             }
         },
         "shots": [
