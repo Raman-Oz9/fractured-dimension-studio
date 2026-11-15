@@ -44,13 +44,13 @@ def create_example(output: str | Path) -> Path:
                 "image": "images/shot-01.png",
                 "duration": 4,
                 "camera": "push_in",
-                "image_prompt": "A lone courier in a dark graphic-novel city, electric-blue signal glowing beneath wet pavement, fractured perspective, expressive ink outlines, vertical composition",
+                "image_prompt": "Cinematic graphic-novel illustration of a fully clothed adult urban explorer standing in a futuristic city plaza at night, a mysterious bright cyan geometric light glowing from a circular symbol on the pavement, dramatic wide composition, expressive ink outlines, layered paper textures, fractured perspective, atmospheric rain reflections, no violence, no nudity",
             },
             {
                 "image": "images/shot-02.png",
                 "duration": 4,
                 "camera": "pull_out",
-                "image_prompt": "Close-up of the courier's hand hovering over a glowing crack in the pavement, red and violet reflections, textured graphic-novel illustration",
+                "image_prompt": "Cinematic graphic-novel close-up of a fully clothed adult explorer wearing a dark jacket and protective glove, gloved hand reaching toward a small floating cyan geometric hologram above a clean stone surface, violet and amber city lights, bold ink outlines, textured mixed-media illustration, dramatic depth, no violence, no nudity",
             },
         ],
     }
