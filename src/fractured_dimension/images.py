@@ -58,6 +58,20 @@ def _model_chain(preferred: str | None = None) -> list[str]:
     return list(dict.fromkeys(chain))
 
 
+def _reference_model_chain(preferred: str | None = None) -> list[str]:
+    """Return only models that can accept character reference images."""
+    selected = _resolve_model(
+        preferred or os.getenv("CLOUDFLARE_REFERENCE_MODEL") or DEFAULT_REFERENCE_MODEL
+    )
+    ordered = [
+        selected,
+        MODEL_IDS["flux-2-dev"],
+        MODEL_IDS["flux-2-klein-9b"],
+        MODEL_IDS["flux-2-klein"],
+    ]
+    return list(dict.fromkeys(model for model in ordered if model in REFERENCE_MODELS))
+
+
 def _multipart_payload(prompt: str, reference_images: list[Path]) -> tuple[bytes, str]:
     boundary = f"----fractured-dimension-{uuid.uuid4().hex}"
     chunks: list[bytes] = []
@@ -349,9 +363,13 @@ def generate_story_images(story: dict, *, overwrite: bool = False) -> list[Path]
             if character_id in character_references
         ][:4]
         preferred_model = shot.get("model")
-        if references and not preferred_model:
-            preferred_model = os.getenv("CLOUDFLARE_REFERENCE_MODEL") or DEFAULT_REFERENCE_MODEL
-        chain = _model_chain(preferred_model)
+        # Never silently drop to a text-only model for a character shot: that
+        # would break visual-reference continuity across scenes.
+        chain = (
+            _reference_model_chain(preferred_model)
+            if references
+            else _model_chain(preferred_model)
+        )
         failures: list[str] = []
         selected_model = ""
         for model_index, selected in enumerate(chain):
