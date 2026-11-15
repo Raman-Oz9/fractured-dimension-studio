@@ -16,7 +16,7 @@ def main() -> None:
     example = sub.add_parser("create-example", help="Create an example story project")
     example.add_argument("--output", required=True)
 
-    generate = sub.add_parser("generate", help="Generate missing shot images with Cloudflare")
+    generate = sub.add_parser("generate", help="Generate missing shot images using configured Cloudflare model fallbacks and character continuity")
     generate.add_argument("story")
     generate.add_argument("--overwrite", action="store_true")
 
