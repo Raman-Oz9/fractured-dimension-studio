@@ -62,7 +62,7 @@ def render_story(story: dict[str, Any], output: str | Path) -> Path:
     concat_file = output_path.parent / f".{output_path.stem}-concat.txt"
     silent_output = output_path.parent / f".{output_path.stem}-silent.mp4"
     concat_file.write_text(
-        "".join(f"file '{p.resolve().as_posix()}'\\n" for p in segment_paths),
+        "".join(f"file '{p.resolve().as_posix()}'\n" for p in segment_paths),
         encoding="utf-8",
     )
     try:
