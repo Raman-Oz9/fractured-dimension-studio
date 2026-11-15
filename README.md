@@ -1,6 +1,6 @@
 # Fractured Dimension Studio
 
-An automated YouTube Shorts production system built around cinematic graphic-novel stills, expressive camera choreography, offline narration, and FFmpeg rendering.
+An automated YouTube Shorts production system built around cinematic graphic-novel stills, expressive camera choreography, VoiceStudio.sh narration, and FFmpeg rendering.
 
 ## Current pipeline
 
@@ -10,19 +10,19 @@ An automated YouTube Shorts production system built around cinematic graphic-nov
 4. Add stable character descriptions to every shot prompt that references that character.
 5. Record which model generated each image in `generation-report.json`.
 6. Render stills into a vertical MP4 while preserving image proportions and using cinematic camera movement.
-7. Generate a deep male voice-over locally with Piper TTS and mux it into the final MP4.
+7. Generate narration through the VoiceStudio.sh speech API, resolve a selected voice profile, and mux the WAV audio into the final MP4.
 
 ## Requirements
 
 - Python 3.11+
 - FFmpeg installed and available on `PATH`
 - Cloudflare account with Workers AI access and an API token for image generation
-- Piper TTS and a compatible ONNX voice model for narration
+- VoiceStudio.sh API base URL and API key for narration
 
 Install:
 
 ```bash
-python -m pip install -e .[dev,audio]
+python -m pip install -e .[dev]
 ```
 
 Create a starter project:
@@ -31,21 +31,18 @@ Create a starter project:
 fractured-dimension create-example --output work/example
 ```
 
-Set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` in your environment (or copy `.env.example` to `.env` and load it with your preferred environment manager). Generate the shot images:
+Set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` for image generation. Set `VOICESTUDIO_BASE_URL` and `VOICESTUDIO_API_KEY` for narration. In GitHub, add the latter two under **Settings → Secrets and variables → Actions**. The base URL must be the API base URL shown in your VoiceStudio.sh account/dashboard (including its `/v1` prefix when supplied that way). Never commit the API key.
+
+The GitHub Actions workflow lets you choose George, Michael, or Liam for each manual video run. It looks up the selected display name in the VoiceStudio voice catalogue and uses the matching saved profile ID. The default is George at 0.92 speed, with a restrained deep documentary-style delivery instruction. Change the workflow input to audition another available narrator. Voice availability depends on the profiles enabled in your VoiceStudio account.
+
+The renderer requests WAV audio from VoiceStudio.sh and muxes it into the MP4. Piper has been removed from the default project and workflow. VoiceStudio's hosted API access and credits depend on the user's account; this integration does not imply unlimited or permanently free synthesis.
+
+Generate the shot images and render:
 
 ```bash
 fractured-dimension generate work/example/story.json
-```
-
-Existing images are skipped. Add `--overwrite` to regenerate them. Finally render:
-
-```bash
 fractured-dimension render work/example/story.json --output output/short.mp4
 ```
-
-When a story includes a non-empty `narration` field, the renderer expects `PIPER_MODEL_PATH` to point to a Piper `.onnx` voice model, with its matching `.onnx.json` file beside it. The GitHub Actions workflow downloads the English male `en_US-john-medium` voice automatically. The workflow also retains the voice model card in its assets artifact. The John medium voice is listed as public domain in Piper's commercial-use voice list; check the model card bundled with the exact downloaded model version before commercial distribution. See the [Piper voice licensing notes](https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/COMMERCIAL_USE.md).
-
-The narration is currently mixed as the video's primary audio track. Caption timing, background music, and sound-effect mixing are the next audio-production stages.
 
 ## Image model routing
 
@@ -88,7 +85,7 @@ pytest
 - [x] Character bible and prompt-level identity/style locks.
 - [x] Per-shot model generation report.
 - [x] FLUX.2 multi-reference image conditioning with reference-safe model fallback for stronger character consistency.
-- [x] Offline deep male narration generation and MP4 audio muxing.
+- [x] VoiceStudio.sh hosted narration with selectable voice profiles and MP4 audio muxing.
 - [ ] Word-timed captions and final quality checks.
 - [ ] Background music and sound-effect mixing.
 - [ ] Automated visual consistency checks and targeted regeneration.
