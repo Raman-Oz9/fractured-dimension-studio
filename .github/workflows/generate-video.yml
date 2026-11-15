@@ -55,3 +55,11 @@ jobs:
           name: fractured-dimension-short
           path: output/fractured-dimension-short.mp4
           if-no-files-found: error
+      - name: Upload character sheets and generated scenes
+        uses: actions/upload-artifact@v4
+        with:
+          name: fractured-dimension-assets
+          path: |
+            work/example/images/
+            work/example/generation-report.json
+          if-no-files-found: error
