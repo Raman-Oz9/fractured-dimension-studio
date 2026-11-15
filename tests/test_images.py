@@ -197,3 +197,51 @@ def test_story_generation_creates_character_sheet_and_reuses_it(tmp_path, monkey
     report = json.loads((tmp_path / "generation-report.json").read_text())
     assert report[0]["status"] == "reference-generated"
     assert report[1]["reference_images_used"] == "true"
+
+
+
+def test_character_shots_never_fall_back_to_text_only_models(tmp_path, monkeypatch):
+    import fractured_dimension.images as images
+
+    monkeypatch.delenv("CLOUDFLARE_MODEL", raising=False)
+    monkeypatch.delenv("CLOUDFLARE_REFERENCE_MODEL", raising=False)
+    monkeypatch.delenv("CLOUDFLARE_FALLBACK_MODELS", raising=False)
+    calls = []
+
+    def fake_request(prompt, destination, model, reference_images=None):
+        refs = list(reference_images or [])
+        calls.append((model, refs))
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if refs and model == images.MODEL_IDS["flux-2-klein"]:
+            raise RuntimeError("Cloudflare image generation failed (404): model unavailable")
+        destination.write_bytes(b"image")
+        return destination
+
+    monkeypatch.setattr(images, "_request_image", fake_request)
+    story = {
+        "_project_dir": str(tmp_path),
+        "character_bible": {
+            "MARA": {
+                "visual_identity": "short black bob, olive jacket",
+                "reference_image": "images/mara-sheet.png",
+                "reference_prompt": "Character turnaround sheet",
+            }
+        },
+        "shots": [{
+            "image": "images/shot-01.png",
+            "image_prompt": "Mara reaches toward a hologram",
+            "character_ids": ["MARA"],
+        }],
+    }
+
+    generate_story_images(story)
+
+    shot_calls = [(model, refs) for model, refs in calls if refs]
+    assert [model for model, _ in shot_calls] == [
+        images.MODEL_IDS["flux-2-klein"],
+        images.MODEL_IDS["flux-2-dev"],
+    ]
+    assert all(refs == [tmp_path / "images/mara-sheet.png"] for _, refs in shot_calls)
+    assert all(model in images.REFERENCE_MODELS for model, _ in shot_calls)
+    report = json.loads((tmp_path / "generation-report.json").read_text())
+    assert report[1]["reference_images_used"] == "true"
