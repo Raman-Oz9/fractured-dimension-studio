@@ -24,7 +24,7 @@ def _generate_kokoro(text: str, output: Path) -> Path:
     language = "b" if voice.startswith("b") else "a"
     pipeline = KPipeline(lang_code=language)
     chunks = []
-    for result in pipeline(text, voice=voice, speed=speed, split_pattern=r"\\n+"):
+    for result in pipeline(text, voice=voice, speed=speed, split_pattern=r"\n+"):
         audio = result.audio
         if audio is None:
             continue
