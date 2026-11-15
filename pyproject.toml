@@ -7,7 +7,7 @@ name = "fractured-dimension-studio"
 version = "0.1.0"
 description = "Cinematic YouTube Shorts production pipeline"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = ["Pillow>=10.0"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
