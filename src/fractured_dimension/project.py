@@ -13,6 +13,9 @@ def validate_story(data: dict[str, Any]) -> None:
     shots = data.get("shots")
     if not isinstance(shots, list) or not shots:
         raise ValueError("Story must contain at least one shot")
+    narration = data.get("narration")
+    if narration is not None and not isinstance(narration, str):
+        raise ValueError("narration must be a string when provided")
     bible = data.get("character_bible", {})
     if not isinstance(bible, dict):
         raise ValueError("character_bible must be an object")
@@ -51,6 +54,10 @@ def create_example(output: str | Path) -> Path:
     (root / "images").mkdir(parents=True, exist_ok=True)
     story = {
         "title": "The Signal Beneath the City",
+        "narration": (
+            "Beneath the city, a hidden signal awakens. "
+            "Mara reaches toward the light—and something answers."
+        ),
         "format": {"width": 1080, "height": 1920, "fps": 30},
         "style_lock": (
             "Fractured Dimension graphic novel: bold expressive ink outlines, "
