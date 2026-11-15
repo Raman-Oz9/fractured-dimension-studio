@@ -90,7 +90,7 @@ def create_example(output: str | Path) -> Path:
             "fractured geometry, cinematic lighting with readable midtones and clear "
             "facial expressions. Keep grain fine and controlled, never blur the subject, "
             "never obscure facial details, and avoid excessive noise or crushed blacks. "
-            "Premium illustrated retro editorial look, not photorealism."
+            "Premium illustrated retro editorial look, not photorealism. Compose with distinct foreground, middle ground and background planes, strong visual separation, and enough surrounding image detail for deliberate camera travel."
         ),
         "character_bible": {
             "MARA": {
@@ -131,7 +131,7 @@ def create_example(output: str | Path) -> Path:
                     "Cinematic graphic-novel wide shot of an adult urban explorer "
                     "standing in a futuristic city plaza at night, a mysterious bright "
                     "cyan geometric light glowing from a circular symbol on the pavement. "
-                    "Show her full body and the surrounding architecture, dramatic "
+                    "Compose three readable depth planes: rain-streaked railing and reflective puddles in the foreground; Mara and the glowing pavement symbol in the middle ground; layered plaza architecture and distant city towers in the background. Show her full body and the surrounding architecture, dramatic "
                     "wide composition, rain reflections."
                 ),
             },
@@ -149,7 +149,7 @@ def create_example(output: str | Path) -> Path:
                 "image_prompt": (
                     "Cinematic graphic-novel close-up of the same explorer's gloved "
                     "hand reaching toward a small floating cyan geometric hologram. "
-                    "Begin tight on her hand and the hologram, with part of her sleeve "
+                    "Place the gloved hand and hologram in the foreground, Mara’s upper body in the middle ground, and recognizable plaza lights and architecture behind her. Preserve enough surrounding context for a smooth pull-back. Begin tight on her hand and the hologram, with part of her sleeve "
                     "and face entering the composition, violet and amber city lights."
                 ),
             },
