@@ -11,7 +11,6 @@ dependencies = ["Pillow>=10.0"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
-audio = ["piper-tts>=1.2.0"]
 
 [project.scripts]
 fractured-dimension = "fractured_dimension.cli:main"
