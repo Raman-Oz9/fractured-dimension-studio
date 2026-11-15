@@ -55,9 +55,9 @@ Cloudflare model availability, beta status, account access, and usage limits var
 
 ## Character continuity
 
-Add a `character_bible` object to `story.json`. Each character should have a stable `visual_identity` description covering recognizable features, hairstyle, clothing, colours, and proportions. Add that character's ID to each relevant shot's `character_ids` list. The generator appends the same identity description and series style lock to each relevant shot prompt, and rejects references to undefined characters.
+Add a `character_bible` object to `story.json`. Each character can define a stable `visual_identity`, a `reference_image` path, and a `reference_prompt`. The generator creates a reusable character sheet first, then sends that sheet as an actual image reference to FLUX.2 Klein for shots that feature the character. Reference images are resized to fit Cloudflare's 512×512 input limit. Add the character ID to each relevant shot's `character_ids` list. The generator also appends the same identity description and series style lock to each shot prompt.
 
-This is prompt-level consistency, not a guarantee that every generated face will be pixel-identical. The next character-consistency upgrade is image-conditioned reference generation and automated visual comparison. Cloudflare lists FLUX.2 [dev] as supporting multi-reference input, but this version does not yet send reference images to that API; it does not pretend that text prompts alone are reference-image conditioning.
+FLUX.2 Klein is the reference-conditioned model; FLUX.1 Schnell, SDXL-Lightning, and SDXL Base remain text-only fallback options. If a fallback model is selected, the pipeline retains the written identity lock and records whether a true reference image was used. This improves continuity but does not guarantee pixel-identical faces. The per-shot and character-sheet model choices are written to `generation-report.json`.
 
 ## Visual direction
 
