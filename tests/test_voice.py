@@ -1,76 +1,48 @@
-import json
-from urllib.request import Request
-
 from fractured_dimension import voice
 
 
-class FakeResponse:
-    def __init__(self, body):
-        self.body = body
+def test_generate_voiceover_uses_kokoro_pipeline(monkeypatch, tmp_path):
+    import sys
+    import types
+    import numpy as np
 
-    def __enter__(self):
-        return self
+    class FakePipeline:
+        def __init__(self, lang_code):
+            assert lang_code == "a"
 
-    def __exit__(self, *args):
-        return False
+        def __call__(self, text, voice, speed, split_pattern):
+            assert text == "A story begins."
+            assert voice == "am_adam"
+            assert speed == 0.94
+            yield types.SimpleNamespace(audio=np.array([0.0, 0.1, -0.1]))
 
-    def read(self):
-        return self.body
-
-
-def test_generate_voiceover_resolves_named_voice_and_requests_wav(monkeypatch, tmp_path):
-    calls = []
-
-    def fake_urlopen(request, timeout):
-        assert isinstance(request, Request)
-        calls.append(request)
-        if request.full_url.endswith("/audio/voices"):
-            return FakeResponse(json.dumps({
-                "voices": [
-                    {"name": "George", "voice_id": "profile-george", "type": "profile"}
-                ]
-            }).encode())
-        return FakeResponse(b"RIFF-test-wav")
-
-    monkeypatch.setenv("VOICESTUDIO_BASE_URL", "https://voice.example/v1/")
-    monkeypatch.setenv("VOICESTUDIO_API_KEY", "test-key")
-    monkeypatch.setenv("VOICESTUDIO_VOICE", "George")
-    monkeypatch.setenv("VOICESTUDIO_SPEED", "0.92")
-    monkeypatch.setattr(voice, "urlopen", fake_urlopen)
+    fake_kokoro = types.ModuleType("kokoro")
+    fake_kokoro.KPipeline = FakePipeline
+    monkeypatch.setitem(sys.modules, "kokoro", fake_kokoro)
+    monkeypatch.setenv("KOKORO_VOICE", "am_adam")
+    monkeypatch.setenv("KOKORO_SPEED", "0.94")
 
     output = tmp_path / "voice.wav"
     result = voice.generate_voiceover("A story begins.", output)
-
     assert result == output
-    assert output.read_bytes() == b"RIFF-test-wav"
-    assert calls[0].full_url == "https://voice.example/v1/audio/voices"
-    assert calls[1].full_url == "https://voice.example/v1/audio/speech"
-    payload = json.loads(calls[1].data.decode())
-    assert payload["voice"] == "profile-george"
-    assert payload["response_format"] == "wav"
-    assert payload["input"] == "A story begins."
-    assert payload["speed"] == 0.92
-    assert calls[1].get_header("Authorization") == "Bearer test-key"
+    assert output.exists()
+    assert output.stat().st_size > 44
 
 
-def test_generate_voiceover_requires_api_credentials(monkeypatch, tmp_path):
-    monkeypatch.delenv("VOICESTUDIO_BASE_URL", raising=False)
-    monkeypatch.delenv("VOICESTUDIO_API_KEY", raising=False)
+def test_generate_voiceover_rejects_empty_text(tmp_path):
     try:
-        voice.generate_voiceover("A story begins.", tmp_path / "voice.wav")
-    except RuntimeError as exc:
-        assert "VOICESTUDIO_BASE_URL" in str(exc)
+        voice.generate_voiceover("  ", tmp_path / "voice.wav")
+    except ValueError as exc:
+        assert "cannot be empty" in str(exc)
     else:
-        raise AssertionError("Expected missing VoiceStudio credentials to fail")
+        raise AssertionError("Expected empty narration to fail")
 
 
-def test_generate_voiceover_rejects_invalid_speed(monkeypatch, tmp_path):
-    monkeypatch.setenv("VOICESTUDIO_BASE_URL", "https://voice.example/v1")
-    monkeypatch.setenv("VOICESTUDIO_API_KEY", "test-key")
-    monkeypatch.setenv("VOICESTUDIO_SPEED", "9")
+def test_generate_voiceover_rejects_unknown_backend(monkeypatch, tmp_path):
+    monkeypatch.setenv("VOICE_BACKEND", "unknown")
     try:
         voice.generate_voiceover("A story begins.", tmp_path / "voice.wav")
     except ValueError as exc:
-        assert "between 0.25 and 4.0" in str(exc)
+        assert "VOICE_BACKEND" in str(exc)
     else:
-        raise AssertionError("Expected invalid speed to fail")
+        raise AssertionError("Expected unknown backend to fail")
