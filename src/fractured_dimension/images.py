@@ -79,7 +79,7 @@ def _multipart_payload(prompt: str, reference_images: list[Path]) -> tuple[bytes
             raise FileNotFoundError(f"Character reference image not found: {reference}")
         with Image.open(reference) as source:
             source.load()
-            source.thumbnail((512, 512))
+            source.thumbnail((511, 511))
             image = source.convert("RGB")
             buffer = io.BytesIO()
             image.save(buffer, format="PNG")
