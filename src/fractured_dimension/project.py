@@ -13,6 +13,9 @@ def validate_story(data: dict[str, Any]) -> None:
     shots = data.get("shots")
     if not isinstance(shots, list) or not shots:
         raise ValueError("Story must contain at least one shot")
+    bible = data.get("character_bible", {})
+    if not isinstance(bible, dict):
+        raise ValueError("character_bible must be an object")
     for index, shot in enumerate(shots, start=1):
         if not isinstance(shot, dict):
             raise ValueError(f"Shot {index} must be an object")
@@ -23,6 +26,16 @@ def validate_story(data: dict[str, Any]) -> None:
             raise ValueError(f"Shot {index} duration must be positive")
         if shot["camera"] not in {"push_in", "pull_out", "pan_left", "pan_right", "hold"}:
             raise ValueError(f"Shot {index} has an unsupported camera move")
+        character_ids = shot.get("character_ids", [])
+        if not isinstance(character_ids, list) or not all(
+            isinstance(item, str) for item in character_ids
+        ):
+            raise ValueError(f"Shot {index} character_ids must be a list of strings")
+        for character_id in character_ids:
+            if character_id not in bible:
+                raise ValueError(
+                    f"Shot {index} references unknown character_id '{character_id}'"
+                )
 
 
 def load_story(path: str | Path) -> dict[str, Any]:
@@ -39,18 +52,47 @@ def create_example(output: str | Path) -> Path:
     story = {
         "title": "The Signal Beneath the City",
         "format": {"width": 1080, "height": 1920, "fps": 30},
+        "style_lock": (
+            "Fractured Dimension graphic novel: bold expressive ink outlines, "
+            "layered tactile mixed-media textures, dimensional fractured geometry, "
+            "cinematic chiaroscuro, deliberate depth and coherent graphic-novel rendering."
+        ),
+        "character_bible": {
+            "MARA": {
+                "visual_identity": (
+                    "Mara is the same adult woman in every shot, with a short "
+                    "asymmetrical black bob haircut, a small silver ear cuff on her "
+                    "left ear, warm brown eyes, an olive utility jacket with a "
+                    "distinctive amber shoulder stripe, charcoal shirt, and black gloves. "
+                    "Keep her face, haircut, jacket and proportions unchanged."
+                )
+            }
+        },
         "shots": [
             {
                 "image": "images/shot-01.png",
                 "duration": 4,
                 "camera": "push_in",
-                "image_prompt": "Cinematic graphic-novel illustration of a fully clothed adult urban explorer standing in a futuristic city plaza at night, a mysterious bright cyan geometric light glowing from a circular symbol on the pavement, dramatic wide composition, expressive ink outlines, layered paper textures, fractured perspective, atmospheric rain reflections, no violence, no nudity",
+                "character_ids": ["MARA"],
+                "image_prompt": (
+                    "Cinematic graphic-novel wide shot of an adult urban explorer "
+                    "standing in a futuristic city plaza at night, a mysterious bright "
+                    "cyan geometric light glowing from a circular symbol on the pavement. "
+                    "Show her full body and the surrounding architecture, dramatic "
+                    "wide composition, rain reflections."
+                ),
             },
             {
                 "image": "images/shot-02.png",
                 "duration": 4,
                 "camera": "pull_out",
-                "image_prompt": "Cinematic graphic-novel close-up of a fully clothed adult explorer wearing a dark jacket and protective glove, gloved hand reaching toward a small floating cyan geometric hologram above a clean stone surface, violet and amber city lights, bold ink outlines, textured mixed-media illustration, dramatic depth, no violence, no nudity",
+                "character_ids": ["MARA"],
+                "image_prompt": (
+                    "Cinematic graphic-novel close-up of the same explorer's gloved "
+                    "hand reaching toward a small floating cyan geometric hologram. "
+                    "Begin tight on her hand and the hologram, with part of her sleeve "
+                    "and face entering the composition, violet and amber city lights."
+                ),
             },
         ],
     }
