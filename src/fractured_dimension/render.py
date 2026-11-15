@@ -9,7 +9,8 @@ from typing import Any
 
 
 def _zoom_filter(move: str, frames: int) -> str:
-    # Smooth, bounded zooms; each shot starts at a stable scale.
+    # Fit by cropping excess width/height, never by stretching the source.
+    # The zoompan input and output therefore share the exact 9:16 aspect ratio.
     if move == "push_in":
         zoom = "min(zoom+0.0015,1.18)"
         x, y = "iw/2-(iw/zoom/2)", "ih/2-(ih/zoom/2)"
@@ -26,7 +27,9 @@ def _zoom_filter(move: str, frames: int) -> str:
         zoom = "1.04"
         x, y = "iw/2-(iw/zoom/2)", "ih/2-(ih/zoom/2)"
     return (
-        f"scale=2200:-1,zoompan=z='{zoom}':x='{x}':y='{y}':"
+        "scale=1080:1920:force_original_aspect_ratio=increase,"
+        "crop=1080:1920,setsar=1,"
+        f"zoompan=z='{zoom}':x='{x}':y='{y}':"
         f"d={frames}:s=1080x1920:fps=30,setsar=1,format=yuv420p"
     )
 
