@@ -17,7 +17,7 @@ An automated YouTube Shorts production system built around cinematic graphic-nov
 - Python 3.11+
 - FFmpeg installed and available on `PATH`
 - Cloudflare account with Workers AI access and an API token for image generation
-- VoiceStudio.sh API base URL and API key for narration
+- A reachable VoiceStudio.sh API-server base URL and API key for narration
 
 Install:
 
@@ -31,9 +31,9 @@ Create a starter project:
 fractured-dimension create-example --output work/example
 ```
 
-Set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` for image generation. Set `VOICESTUDIO_BASE_URL` and `VOICESTUDIO_API_KEY` for narration. In GitHub, add the latter two under **Settings → Secrets and variables → Actions**. The base URL must be the API base URL shown in your VoiceStudio.sh account/dashboard (including its `/v1` prefix when supplied that way). Never commit the API key.
+Set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` for image generation. Set `VOICESTUDIO_BASE_URL` and `VOICESTUDIO_API_KEY` for narration. In GitHub, add them under **Settings → Secrets and variables → Actions**. The URL must point to a reachable VoiceStudio API server (including its `/v1` prefix); this can be a self-hosted remote backend. The public VoiceStudio Cloud API is not currently released. Never commit the API key.
 
-The GitHub Actions workflow lets you choose George, Michael, or Liam for each manual video run. It looks up the selected display name in the VoiceStudio voice catalogue and uses the matching saved profile ID. The default is George at 0.92 speed, with a restrained deep documentary-style delivery instruction. Change the workflow input to audition another available narrator. Voice availability depends on the profiles enabled in your VoiceStudio account.
+The GitHub Actions workflow lets you choose George, Michael, or Liam for each manual video run; the selected name is matched against the server's saved voice catalogue where available. It looks up the selected display name in the VoiceStudio voice catalogue and uses the matching saved profile ID. The default is George at 0.92 speed, with a restrained deep documentary-style delivery instruction. Change the workflow input to audition another available narrator. Voice availability depends on the profiles enabled in your VoiceStudio account.
 
 The renderer requests WAV audio from VoiceStudio.sh and muxes it into the MP4. Piper has been removed from the default project and workflow. VoiceStudio's hosted API access and credits depend on the user's account; this integration does not imply unlimited or permanently free synthesis.
 
@@ -85,7 +85,7 @@ pytest
 - [x] Character bible and prompt-level identity/style locks.
 - [x] Per-shot model generation report.
 - [x] FLUX.2 multi-reference image conditioning with reference-safe model fallback for stronger character consistency.
-- [x] VoiceStudio.sh hosted narration with selectable voice profiles and MP4 audio muxing.
+- [x] VoiceStudio.sh API-server narration with selectable voice profiles and MP4 audio muxing.
 - [ ] Word-timed captions and final quality checks.
 - [ ] Background music and sound-effect mixing.
 - [ ] Automated visual consistency checks and targeted regeneration.
