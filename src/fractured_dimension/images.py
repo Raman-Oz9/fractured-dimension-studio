@@ -319,14 +319,24 @@ def _shot_prompt(story: dict, shot: dict, index: int) -> str:
             )
         continuity.append(f"{character_id}: {description.strip()}")
 
-    parts = [prompt]
+    parts = [
+        prompt,
+        "ANATOMY AND SINGLE-SUBJECT QUALITY RULES: each depicted person has exactly "
+        "one head, one face, one neck, one torso, two arms and two legs where visible. "
+        "The head is naturally attached to the neck and shoulders. Keep facial features "
+        "correctly aligned to the same skull and viewing angle. Show one coherent head "
+        "only: no duplicate head, floating head, detached face, side-face overlay, "
+        "second face, extra facial features, merged bodies, extra limbs, malformed "
+        "hands, or mirrored anatomy. Do not show alternate views of the same character "
+        "in a single story frame. Keep the full head inside the frame unless intentionally cropped.",
+    ]
     if continuity:
         parts.append(
             "CHARACTER CONTINUITY LOCK — depict these same established characters "
             "without redesigning their face, age, hairstyle, skin tone, body build, "
             "signature clothing, or distinguishing features: "
             + " | ".join(continuity)
-            + ". Change only pose, expression, camera angle, and scene action."
+            + ". Change only pose, expression, camera angle, and scene action. Do not reinterpret the character or add another version of them."
         )
     style_lock = story.get("style_lock")
     if isinstance(style_lock, str) and style_lock.strip():
