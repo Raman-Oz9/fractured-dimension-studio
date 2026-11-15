@@ -7,6 +7,8 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from .voice import generate_voiceover
+
 
 def _zoom_filter(move: str, frames: int) -> str:
     # Fit by cropping excess width/height, never by stretching the source.
@@ -58,18 +60,40 @@ def render_story(story: dict[str, Any], output: str | Path) -> Path:
         segment_paths.append(segment)
 
     concat_file = output_path.parent / f".{output_path.stem}-concat.txt"
+    silent_output = output_path.parent / f".{output_path.stem}-silent.mp4"
     concat_file.write_text(
-        "".join(f"file '{p.resolve().as_posix()}'\n" for p in segment_paths),
+        "".join(f"file '{p.resolve().as_posix()}'\\n" for p in segment_paths),
         encoding="utf-8",
     )
     try:
         subprocess.run(
             ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat_file),
-             "-c", "copy", str(output_path)],
+             "-c", "copy", str(silent_output)],
             check=True, capture_output=True, text=True,
         )
+        narration = story.get("narration")
+        if narration:
+            voice_path = output_path.parent / f".{output_path.stem}-voice.wav"
+            try:
+                generate_voiceover(str(narration), voice_path)
+                duration = sum(float(shot["duration"]) for shot in story["shots"])
+                subprocess.run(
+                    [
+                        "ffmpeg", "-y", "-i", str(silent_output), "-i", str(voice_path),
+                        "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy",
+                        "-c:a", "aac", "-b:a", "192k", "-af", "apad",
+                        "-t", str(duration), "-movflags", "+faststart", str(output_path),
+                    ],
+                    check=True, capture_output=True, text=True,
+                )
+            finally:
+                voice_path.unlink(missing_ok=True)
+                silent_output.unlink(missing_ok=True)
+        else:
+            silent_output.replace(output_path)
     finally:
         concat_file.unlink(missing_ok=True)
+        silent_output.unlink(missing_ok=True)
         for segment in segment_paths:
             segment.unlink(missing_ok=True)
     return output_path
