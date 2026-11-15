@@ -1,42 +1,76 @@
-from pathlib import Path
-
-import pytest
+import json
+from urllib.request import Request
 
 from fractured_dimension import voice
 
 
-def test_generate_voiceover_requires_configured_model(monkeypatch, tmp_path):
-    monkeypatch.delenv("PIPER_MODEL_PATH", raising=False)
-    with pytest.raises(RuntimeError, match="PIPER_MODEL_PATH"):
-        voice.generate_voiceover("A story begins.", tmp_path / "voice.wav")
+class FakeResponse:
+    def __init__(self, body):
+        self.body = body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def read(self):
+        return self.body
 
 
-def test_generate_voiceover_invokes_piper(monkeypatch, tmp_path):
-    model = tmp_path / "voice.onnx"
-    model.write_bytes(b"model")
+def test_generate_voiceover_resolves_named_voice_and_requests_wav(monkeypatch, tmp_path):
+    calls = []
+
+    def fake_urlopen(request, timeout):
+        assert isinstance(request, Request)
+        calls.append(request)
+        if request.full_url.endswith("/audio/voices"):
+            return FakeResponse(json.dumps({
+                "voices": [
+                    {"name": "George", "voice_id": "profile-george", "type": "profile"}
+                ]
+            }).encode())
+        return FakeResponse(b"RIFF-test-wav")
+
+    monkeypatch.setenv("VOICESTUDIO_BASE_URL", "https://voice.example/v1/")
+    monkeypatch.setenv("VOICESTUDIO_API_KEY", "test-key")
+    monkeypatch.setenv("VOICESTUDIO_VOICE", "George")
+    monkeypatch.setenv("VOICESTUDIO_SPEED", "0.92")
+    monkeypatch.setattr(voice, "urlopen", fake_urlopen)
+
     output = tmp_path / "voice.wav"
-    calls = {}
-
-    monkeypatch.setenv("PIPER_MODEL_PATH", str(model))
-    monkeypatch.setattr(voice.shutil, "which", lambda name: "/usr/bin/piper")
-
-    def fake_run(command, **kwargs):
-        calls["command"] = command
-        calls["kwargs"] = kwargs
-        output.write_bytes(b"wav")
-
-    monkeypatch.setattr(voice.subprocess, "run", fake_run)
     result = voice.generate_voiceover("A story begins.", output)
 
     assert result == output
-    assert calls["command"] == [
-        "/usr/bin/piper", "--model", str(model), "--output_file", str(output)
-    ]
-    assert calls["kwargs"]["input"] == "A story begins."
-    assert calls["kwargs"]["check"] is True
+    assert output.read_bytes() == b"RIFF-test-wav"
+    assert calls[0].full_url == "https://voice.example/v1/audio/voices"
+    assert calls[1].full_url == "https://voice.example/v1/audio/speech"
+    payload = json.loads(calls[1].data.decode())
+    assert payload["voice"] == "profile-george"
+    assert payload["response_format"] == "wav"
+    assert payload["input"] == "A story begins."
+    assert payload["speed"] == 0.92
+    assert calls[1].get_header("Authorization") == "Bearer test-key"
 
 
-def test_generate_voiceover_rejects_missing_model_file(monkeypatch, tmp_path):
-    monkeypatch.setenv("PIPER_MODEL_PATH", str(tmp_path / "missing.onnx"))
-    with pytest.raises(FileNotFoundError, match="Piper voice model not found"):
+def test_generate_voiceover_requires_api_credentials(monkeypatch, tmp_path):
+    monkeypatch.delenv("VOICESTUDIO_BASE_URL", raising=False)
+    monkeypatch.delenv("VOICESTUDIO_API_KEY", raising=False)
+    try:
         voice.generate_voiceover("A story begins.", tmp_path / "voice.wav")
+    except RuntimeError as exc:
+        assert "VOICESTUDIO_BASE_URL" in str(exc)
+    else:
+        raise AssertionError("Expected missing VoiceStudio credentials to fail")
+
+
+def test_generate_voiceover_rejects_invalid_speed(monkeypatch, tmp_path):
+    monkeypatch.setenv("VOICESTUDIO_BASE_URL", "https://voice.example/v1")
+    monkeypatch.setenv("VOICESTUDIO_API_KEY", "test-key")
+    monkeypatch.setenv("VOICESTUDIO_SPEED", "9")
+    try:
+        voice.generate_voiceover("A story begins.", tmp_path / "voice.wav")
+    except ValueError as exc:
+        assert "between 0.25 and 4.0" in str(exc)
+    else:
+        raise AssertionError("Expected invalid speed to fail")
