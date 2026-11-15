@@ -33,9 +33,7 @@ fractured-dimension create-example --output work/example
 
 Set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` for image generation. The GitHub Actions workflow installs Kokoro and runs it directly on the hosted runner; no local computer or external speech server is required. Choose `am_adam` or `bm_george` in the workflow dispatch form. For optional remote VoiceStudio mode, set `VOICE_BACKEND=voicestudio` and add `VOICESTUDIO_BASE_URL` (including `/v1`) and `VOICESTUDIO_API_KEY` as Actions secrets. VoiceStudio's documented API still requires a reachable server; its public Cloud API is not generally released. Never commit API keys.
 
-The GitHub Actions workflow lets you choose George, Michael, or Liam for each manual video run; the selected name is matched against the server's saved voice catalogue where available. It looks up the selected display name in the VoiceStudio voice catalogue and uses the matching saved profile ID. The default is George at 0.92 speed, with a restrained deep documentary-style delivery instruction. Change the workflow input to audition another available narrator. Voice availability depends on the profiles enabled in your VoiceStudio account.
-
-The renderer requests WAV audio from VoiceStudio.sh and muxes it into the MP4. Piper has been removed from the default project and workflow. VoiceStudio's hosted API access and credits depend on the user's account; this integration does not imply unlimited or permanently free synthesis.
+The GitHub Actions workflow uses Kokoro directly on the runner by default, with `am_adam` or `bm_george` selectable. Piper is no longer part of the default narration path.
 
 Generate the shot images and render:
 
@@ -58,13 +56,13 @@ Cloudflare model availability, beta status, account access, and usage limits var
 
 ## Character continuity
 
-Add a `character_bible` object to `story.json`. Each character can define a stable `visual_identity`, a `reference_image` path, and a `reference_prompt`. The generator creates a reusable character sheet first, then sends that sheet as an actual image reference to FLUX.2 Klein for shots that feature the character. Reference images are resized to fit Cloudflare's 512×512 input limit. Add the character ID to each relevant shot's `character_ids` list. The generator also appends the same identity description and series style lock to each shot prompt.
+Add a `character_bible` object to `story.json`. Each character can define a stable `visual_identity`, a `reference_image` path, and a `reference_prompt`. The generator creates a reusable character sheet first, then sends that sheet as an actual image reference to FLUX.2 Klein for shots that feature the character. Reference images are resized to fit Cloudflare's 512×512 input limit. Add the character ID to each relevant shot's `character_ids` list. The generator also appends the same identity description and series style lock to each shot prompt, plus explicit single-head, facial-alignment and human-anatomy constraints to reduce duplicated or detached heads. These prompt constraints reduce errors but cannot guarantee every generated image is anatomically perfect.
 
 FLUX.2 Klein, FLUX.2 Dev, and FLUX.2 Klein 9B are treated as reference-capable models. When a shot includes a character reference image, the router tries only this reference-capable family; it will not silently fall back to FLUX.1 Schnell or SDXL and lose the image reference. If every reference-capable option fails, that shot fails clearly instead of quietly producing a continuity-breaking image. Shots without character references can still use the general multi-model fallback chain. This improves continuity but does not guarantee pixel-identical faces. The per-shot model and whether an actual reference image was supplied are written to `generation-report.json`.
 
 ## Visual direction
 
-Graphic-novel illustration with dimensional depth, bold expressive ink, fractured geometric compositions, textured mixed media, and cinematic lighting. Use varied original characters and adapt the palette to each story. Camera movement should reveal reactions and story details: expressive close-ups of faces and hands, wider pull-outs that capture body language, purposeful pans, and controlled punch-ins—not generic static framing. Images are fitted to the 9:16 canvas by aspect-ratio-preserving crop, never stretched to fit.
+Retro-cinematic graphic-novel illustration with dimensional depth, bold expressive ink, fractured geometric compositions, subtle 35mm grain, fine halftone print shading, tactile aged-paper texture, and a slightly faded vintage palette. Keep faces and midtones crisp and readable; grain must never obscure anatomy. Use varied original characters and adapt the palette to each story. Camera movement should reveal reactions and story details: expressive close-ups of faces and hands, wider pull-outs that capture body language, purposeful pans, and controlled punch-ins—not generic static framing. Images are fitted to the 9:16 canvas by aspect-ratio-preserving crop, never stretched to fit.
 
 ## Configuration and security
 
