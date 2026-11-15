@@ -9,14 +9,21 @@ on:
         type: boolean
         default: false
       narrator:
-        description: VoiceStudio narrator profile
+        description: Kokoro male narrator voice
         required: true
         type: choice
         options:
-          - George
-          - Michael
-          - Liam
-        default: George
+          - am_adam
+          - bm_george
+        default: am_adam
+      voice_backend:
+        description: Narration engine
+        required: true
+        type: choice
+        options:
+          - kokoro
+          - voicestudio
+        default: kokoro
 
 permissions:
   contents: read
@@ -24,7 +31,11 @@ permissions:
 jobs:
   generate-and-render:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     env:
+      VOICE_BACKEND: ${{ inputs.voice_backend }}
+      KOKORO_VOICE: ${{ inputs.narrator }}
+      KOKORO_SPEED: "0.94"
       VOICESTUDIO_BASE_URL: ${{ secrets.VOICESTUDIO_BASE_URL }}
       VOICESTUDIO_API_KEY: ${{ secrets.VOICESTUDIO_API_KEY }}
       VOICESTUDIO_VOICE: ${{ inputs.narrator }}
@@ -42,18 +53,23 @@ jobs:
       - name: Install FFmpeg
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          sudo apt-get install -y ffmpeg espeak-ng
 
-      - name: Install project
-        run: python -m pip install .
-
-      - name: Verify VoiceStudio configuration
-        env:
-          VOICESTUDIO_BASE_URL: ${{ secrets.VOICESTUDIO_BASE_URL }}
-          VOICESTUDIO_API_KEY: ${{ secrets.VOICESTUDIO_API_KEY }}
+      - name: Install project and Kokoro TTS
         run: |
-          test -n "$VOICESTUDIO_BASE_URL" || (echo "::error::Add VOICESTUDIO_BASE_URL to repository Actions secrets." && exit 1)
-          test -n "$VOICESTUDIO_API_KEY" || (echo "::error::Add VOICESTUDIO_API_KEY to repository Actions secrets." && exit 1)
+          python -m pip install --upgrade pip
+          python -m pip install .
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install kokoro soundfile numpy
+
+      - name: Verify narration configuration
+        run: |
+          if [ "$VOICE_BACKEND" = "voicestudio" ]; then
+            test -n "$VOICESTUDIO_BASE_URL" || (echo "::error::Set VOICESTUDIO_BASE_URL to a reachable VoiceStudio API server." && exit 1)
+            test -n "$VOICESTUDIO_API_KEY" || (echo "::error::Set VOICESTUDIO_API_KEY." && exit 1)
+          else
+            python -c "from kokoro import KPipeline; print('Kokoro import OK')"
+          fi
 
       - name: Create example story
         run: fractured-dimension create-example --output work/example
@@ -69,7 +85,7 @@ jobs:
             fractured-dimension generate work/example/story.json
           fi
 
-      - name: Render vertical video with VoiceStudio narration
+      - name: Render vertical video with narration
         run: fractured-dimension render work/example/story.json --output output/fractured-dimension-short.mp4
 
       - name: Upload generated video
