@@ -57,7 +57,7 @@ Cloudflare model availability, beta status, account access, and usage limits var
 
 Add a `character_bible` object to `story.json`. Each character can define a stable `visual_identity`, a `reference_image` path, and a `reference_prompt`. The generator creates a reusable character sheet first, then sends that sheet as an actual image reference to FLUX.2 Klein for shots that feature the character. Reference images are resized to fit Cloudflare's 512×512 input limit. Add the character ID to each relevant shot's `character_ids` list. The generator also appends the same identity description and series style lock to each shot prompt.
 
-FLUX.2 Klein is the reference-conditioned model; FLUX.1 Schnell, SDXL-Lightning, and SDXL Base remain text-only fallback options. If a fallback model is selected, the pipeline retains the written identity lock and records whether a true reference image was used. This improves continuity but does not guarantee pixel-identical faces. The per-shot and character-sheet model choices are written to `generation-report.json`.
+FLUX.2 Klein, FLUX.2 Dev, and FLUX.2 Klein 9B are treated as reference-capable models. When a shot includes a character reference image, the router tries only this reference-capable family; it will not silently fall back to FLUX.1 Schnell or SDXL and lose the image reference. If every reference-capable option fails, that shot fails clearly instead of quietly producing a continuity-breaking image. Shots without character references can still use the general multi-model fallback chain. This improves continuity but does not guarantee pixel-identical faces. The per-shot model and whether an actual reference image was supplied are written to `generation-report.json`.
 
 ## Visual direction
 
@@ -81,7 +81,7 @@ pytest
 - [x] Multi-model fallback routing (FLUX.1 Schnell, SDXL-Lightning, SDXL Base).
 - [x] Character bible and prompt-level identity/style locks.
 - [x] Per-shot model generation report.
-- [ ] FLUX.2 multi-reference image conditioning for stronger character consistency.
+- [x] FLUX.2 multi-reference image conditioning with reference-safe model fallback for stronger character consistency.
 - [ ] Automated visual consistency checks and targeted regeneration.
 - [ ] Narration and sound design.
 - [ ] Captions and final quality checks.
