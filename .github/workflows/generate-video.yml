@@ -8,6 +8,15 @@ on:
         required: false
         type: boolean
         default: false
+      narrator:
+        description: VoiceStudio narrator profile
+        required: true
+        type: choice
+        options:
+          - George
+          - Michael
+          - Liam
+        default: George
 
 permissions:
   contents: read
@@ -16,7 +25,11 @@ jobs:
   generate-and-render:
     runs-on: ubuntu-latest
     env:
-      PIPER_MODEL_PATH: voices/en_US-john-medium.onnx
+      VOICESTUDIO_BASE_URL: ${{ secrets.VOICESTUDIO_BASE_URL }}
+      VOICESTUDIO_API_KEY: ${{ secrets.VOICESTUDIO_API_KEY }}
+      VOICESTUDIO_VOICE: ${{ inputs.narrator }}
+      VOICESTUDIO_MODEL: tts-1
+      VOICESTUDIO_SPEED: "0.92"
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -31,16 +44,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: Install project and offline narration engine
-        run: python -m pip install ".[audio]"
+      - name: Install project
+        run: python -m pip install .
 
-      - name: Download deep male Piper voice
+      - name: Verify VoiceStudio configuration
+        env:
+          VOICESTUDIO_BASE_URL: ${{ secrets.VOICESTUDIO_BASE_URL }}
+          VOICESTUDIO_API_KEY: ${{ secrets.VOICESTUDIO_API_KEY }}
         run: |
-          mkdir -p voices
-          base="https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/john/medium"
-          curl --fail --location --retry 3 "$base/en_US-john-medium.onnx" -o "$PIPER_MODEL_PATH"
-          curl --fail --location --retry 3 "$base/en_US-john-medium.onnx.json" -o "$PIPER_MODEL_PATH.json"
-          curl --fail --location --retry 3 "$base/MODEL_CARD" -o voices/MODEL_CARD-en_US-john-medium.txt
+          test -n "$VOICESTUDIO_BASE_URL" || (echo "::error::Add VOICESTUDIO_BASE_URL to repository Actions secrets." && exit 1)
+          test -n "$VOICESTUDIO_API_KEY" || (echo "::error::Add VOICESTUDIO_API_KEY to repository Actions secrets." && exit 1)
 
       - name: Create example story
         run: fractured-dimension create-example --output work/example
@@ -56,7 +69,7 @@ jobs:
             fractured-dimension generate work/example/story.json
           fi
 
-      - name: Render vertical video with narration
+      - name: Render vertical video with VoiceStudio narration
         run: fractured-dimension render work/example/story.json --output output/fractured-dimension-short.mp4
 
       - name: Upload generated video
@@ -66,12 +79,11 @@ jobs:
           path: output/fractured-dimension-short.mp4
           if-no-files-found: error
 
-      - name: Upload character sheets, scenes and voice license
+      - name: Upload character sheets and scenes
         uses: actions/upload-artifact@v4
         with:
           name: fractured-dimension-assets
           path: |
             work/example/images/
             work/example/generation-report.json
-            voices/MODEL_CARD-en_US-john-medium.txt
           if-no-files-found: error
