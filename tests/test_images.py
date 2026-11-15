@@ -114,6 +114,8 @@ def test_story_generation_injects_character_and_style_locks(tmp_path, monkeypatc
     assert result[0].read_bytes() == b"image"
     assert "short black bob, olive jacket, amber stripe" in captured[0][0]
     assert "bold ink graphic novel" in captured[0][0]
+    assert "exactly " + "one head" in captured[0][0]
+    assert "duplicate head" in captured[0][0]
     report = json.loads((tmp_path / "generation-report.json").read_text())
     assert report[0]["model"] == captured[0][1]
 
