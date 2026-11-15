@@ -130,3 +130,70 @@ def test_story_generation_rejects_unknown_character(tmp_path):
     }
     with pytest.raises(ValueError, match="unknown character_id"):
         generate_story_images(story)
+
+
+def test_flux2_request_sends_multipart_reference_image(tmp_path, monkeypatch):
+    import fractured_dimension.images as images
+    from PIL import Image
+
+    reference = tmp_path / "character.png"
+    Image.new("RGB", (900, 700), "white").save(reference)
+    captured = {}
+
+    def fake_urlopen(request, timeout):
+        captured["content_type"] = request.get_header("Content-type")
+        captured["body"] = request.data
+        return FakeResponse(b"generated-image")
+
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "account")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "token")
+    monkeypatch.setattr(images, "urlopen", fake_urlopen)
+    destination = tmp_path / "out.png"
+    images._request_image(
+        "Mara in a city", destination, images.MODEL_IDS["flux-2-klein"], [reference]
+    )
+
+    assert "multipart/form-data; boundary=" in captured["content_type"]
+    assert b'name="prompt"' in captured["body"]
+    assert b'name="input_image_0"' in captured["body"]
+    assert b"reference-0.png" in captured["body"]
+    assert destination.read_bytes() == b"generated-image"
+
+
+def test_story_generation_creates_character_sheet_and_reuses_it(tmp_path, monkeypatch):
+    import fractured_dimension.images as images
+
+    calls = []
+
+    def fake_request(prompt, destination, model, reference_images=None):
+        refs = list(reference_images or [])
+        calls.append((prompt, destination, model, refs))
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(b"image")
+        return destination
+
+    monkeypatch.setattr(images, "_request_image", fake_request)
+    story = {
+        "_project_dir": str(tmp_path),
+        "style_lock": "fractured graphic novel",
+        "character_bible": {
+            "MARA": {
+                "visual_identity": "short black bob, olive jacket",
+                "reference_image": "images/mara-sheet.png",
+                "reference_prompt": "Character turnaround sheet",
+            }
+        },
+        "shots": [{
+            "image": "images/shot-01.png",
+            "image_prompt": "Mara reaches toward a hologram",
+            "character_ids": ["MARA"],
+        }],
+    }
+    generate_story_images(story)
+    assert len(calls) == 2
+    assert calls[0][2] == images.DEFAULT_REFERENCE_MODEL
+    assert calls[1][2] == images.DEFAULT_REFERENCE_MODEL
+    assert calls[1][3] == [tmp_path / "images/mara-sheet.png"]
+    report = json.loads((tmp_path / "generation-report.json").read_text())
+    assert report[0]["status"] == "reference-generated"
+    assert report[1]["reference_images_used"] == "true"
