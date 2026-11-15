@@ -60,9 +60,14 @@ def create_example(output: str | Path) -> Path:
         ),
         "format": {"width": 1080, "height": 1920, "fps": 30},
         "style_lock": (
-            "Fractured Dimension graphic novel: bold expressive ink outlines, "
-            "layered tactile mixed-media textures, dimensional fractured geometry, "
-            "cinematic chiaroscuro, deliberate depth and coherent graphic-novel rendering."
+            "Fractured Dimension retro-cinematic graphic novel: bold expressive ink "
+            "outlines, subtle 35mm film grain, fine halftone print shading, tactile "
+            "aged-paper and screen-print texture, slightly faded vintage colour palette "
+            "with restrained teal, rust, ochre and dusty rose accents, dimensional "
+            "fractured geometry, cinematic lighting with readable midtones and clear "
+            "facial expressions. Keep grain fine and controlled, never blur the subject, "
+            "never obscure facial details, and avoid excessive noise or crushed blacks. "
+            "Premium illustrated retro editorial look, not photorealism."
         ),
         "character_bible": {
             "MARA": {
@@ -78,7 +83,12 @@ def create_example(output: str | Path) -> Path:
                     "Design a polished recurring-character reference image for Mara. "
                     "Use a neutral muted-grey studio background, clear silhouette, "
                     "front three-quarter full-body pose and a separate readable face "
-                    "portrait inset. Graphic-novel concept-art presentation."
+                    "portrait inset as a clearly separated reference-sheet panel. The "
+                    "portrait inset is intentional only on this reference sheet; do not "
+                    "duplicate the head in normal story shots. Correct human anatomy, "
+                    "one head attached naturally to one neck and torso. Retro printed "
+                    "graphic-novel concept-art presentation with subtle film grain and "
+                    "fine halftone texture."
                 ),
             }
         },
