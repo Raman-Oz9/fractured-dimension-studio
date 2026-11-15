@@ -208,6 +208,144 @@ def generate_image(
     )
 
 
+
+def _replicate_request(
+    prompt: str, destination: Path, reference_images: list[Path] | None = None
+) -> Path:
+    """Generate with Replicate; use Kontext when a character reference is supplied."""
+    token = os.getenv("REPLICATE_API_TOKEN")
+    if not token:
+        raise RuntimeError("Replicate fallback needs REPLICATE_API_TOKEN.")
+
+    references = reference_images or []
+    if references:
+        model = "black-forest-labs/flux-kontext-pro"
+        reference = references[0]
+        if not reference.is_file():
+            raise FileNotFoundError(f"Character reference image not found: {reference}")
+        with Image.open(reference) as source:
+            source.load()
+            source.thumbnail((384, 384))
+            buffer = io.BytesIO()
+            source.convert("RGB").save(buffer, format="JPEG", quality=65, optimize=True)
+        encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
+        image_input = f"data:image/jpeg;base64,{encoded}"
+        if len(image_input) > 256 * 1024:
+            raise RuntimeError(
+                "Compressed character reference exceeds Replicate's data-URL limit."
+            )
+        inputs = {
+            "prompt": prompt,
+            "input_image": image_input,
+            "aspect_ratio": "match_input_image",
+            "output_format": "png",
+            "safety_tolerance": 2,
+            "prompt_upsampling": False,
+        }
+        if len(references) > 1:
+            print("Replicate FLUX Kontext accepts one reference here; using the first character reference.")
+    else:
+        model = "black-forest-labs/flux-schnell"
+        inputs = {
+            "prompt": prompt,
+            "aspect_ratio": "9:16",
+            "output_format": "png",
+            "num_outputs": 1,
+        }
+
+    endpoint = f"https://api.replicate.com/v1/models/{model}/predictions"
+    payload = json.dumps({"input": inputs}).encode("utf-8")
+    request = Request(
+        endpoint,
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+            "Prefer": "wait=60",
+        },
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=240) as response:
+            prediction = json.loads(response.read())
+    except HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:1200]
+        raise RuntimeError(f"Replicate image generation failed ({exc.code}): {detail}") from exc
+    except (URLError, ValueError) as exc:
+        raise RuntimeError(f"Could not complete Replicate image request: {exc}") from exc
+
+    # Replicate may return a still-running prediction after the synchronous wait.
+    for _ in range(60):
+        status = prediction.get("status")
+        if status in {"succeeded", "failed", "canceled"}:
+            break
+        poll_url = (prediction.get("urls") or {}).get("get")
+        if not poll_url:
+            raise RuntimeError("Replicate returned a pending prediction without a polling URL.")
+        import time
+        time.sleep(2)
+        poll = Request(
+            poll_url,
+            headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
+        )
+        try:
+            with urlopen(poll, timeout=120) as response:
+                prediction = json.loads(response.read())
+        except (HTTPError, URLError, ValueError) as exc:
+            raise RuntimeError(f"Could not poll Replicate prediction: {exc}") from exc
+    else:
+        raise RuntimeError("Replicate prediction did not finish within the polling limit.")
+
+    if prediction.get("status") != "succeeded":
+        raise RuntimeError(
+            "Replicate prediction "
+            + str(prediction.get("status"))
+            + ": "
+            + str(prediction.get("error") or "no error detail")
+        )
+    output = prediction.get("output")
+    output_url = output[0] if isinstance(output, list) and output else output
+    if not isinstance(output_url, str) or not output_url.startswith("https://"):
+        raise RuntimeError("Replicate returned no valid image URL.")
+    try:
+        with urlopen(Request(output_url), timeout=240) as response:
+            image_bytes = response.read()
+    except (HTTPError, URLError) as exc:
+        raise RuntimeError(f"Could not download Replicate image output: {exc}") from exc
+    if not image_bytes:
+        raise RuntimeError("Replicate returned an empty image.")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_bytes(image_bytes)
+    return destination
+
+
+def _request_image_with_fallback(
+    prompt: str,
+    destination: Path,
+    model: str,
+    reference_images: list[Path] | None = None,
+) -> tuple[Path, str, str]:
+    """Try Cloudflare first, then Replicate on quota/auth failures."""
+    try:
+        result = _request_image(prompt, destination, model, reference_images)
+        return result, "cloudflare", model
+    except RuntimeError as exc:
+        status = re.search(r"failed \((\d{3})\)", str(exc))
+        if not status or int(status.group(1)) not in {401, 403, 429}:
+            raise
+        if not os.getenv("REPLICATE_API_TOKEN"):
+            raise RuntimeError(
+                f"{exc}\nReplicate fallback is not configured. Add REPLICATE_API_TOKEN "
+                "to GitHub Actions secrets to enable the independent provider."
+            ) from exc
+        print(f"Cloudflare returned HTTP {status.group(1)}; switching to Replicate.")
+        result = _replicate_request(prompt, destination, reference_images)
+        replicate_model = (
+            "black-forest-labs/flux-kontext-pro"
+            if reference_images else "black-forest-labs/flux-schnell"
+        )
+        return result, "replicate", replicate_model
+
 def _character_profile(story: dict, character_id: str) -> dict:
     profile = story.get("character_bible", {}).get(character_id)
     if isinstance(profile, str):
@@ -275,15 +413,18 @@ def _prepare_character_references(
         chain = _model_chain(reference_model)
         for model_index, selected in enumerate(chain):
             try:
-                _request_image(prompt, destination, selected)
+                _, provider, actual_model = _request_image_with_fallback(
+                    prompt, destination, selected
+                )
                 references[character_id] = destination
                 report.append({
                     "shot": f"character:{character_id}",
                     "image": str(destination),
                     "status": "reference-generated",
-                    "model": selected,
+                    "provider": provider,
+                    "model": actual_model,
                 })
-                print(f"Character reference {character_id}: generated with {selected}")
+                print(f"Character reference {character_id}: generated with {provider}/{actual_model}")
                 break
             except RuntimeError as exc:
                 failures.append(f"{selected}: {exc}")
@@ -384,8 +525,9 @@ def generate_story_images(story: dict, *, overwrite: bool = False) -> list[Path]
         selected_model = ""
         for model_index, selected in enumerate(chain):
             try:
-                _request_image(full_prompt, destination, selected, references)
-                selected_model = selected
+                _, selected_provider, selected_model = _request_image_with_fallback(
+                    full_prompt, destination, selected, references
+                )
                 break
             except RuntimeError as exc:
                 failures.append(f"{selected}: {exc}")
@@ -402,6 +544,7 @@ def generate_story_images(story: dict, *, overwrite: bool = False) -> list[Path]
             "shot": str(index),
             "image": str(destination),
             "status": "generated",
+            "provider": selected_provider,
             "model": selected_model,
             "reference_images_used": str(
                 bool(references and selected_model in REFERENCE_MODELS)
