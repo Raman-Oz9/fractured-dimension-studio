@@ -26,7 +26,7 @@ def test_generate_image_saves_binary_response(tmp_path, monkeypatch):
 
     def fake_urlopen(request, timeout):
         assert request.get_header("Authorization") == "Bearer token"
-        assert timeout == 180
+        assert timeout == 240
         return FakeResponse(b"fake-image-bytes")
 
     monkeypatch.setattr(images, "urlopen", fake_urlopen)
@@ -66,7 +66,7 @@ def test_generate_image_falls_back_to_second_model(tmp_path, monkeypatch):
 
     calls = []
 
-    def fake_request(prompt, destination, model):
+    def fake_request(prompt, destination, model, reference_images=None):
         calls.append(model)
         if len(calls) == 1:
             raise RuntimeError("Cloudflare image generation failed (404): model unavailable")
