@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +30,28 @@ def validate_story(data: dict[str, Any]) -> None:
             raise ValueError(f"Shot {index} duration must be positive")
         if shot["camera"] not in {"push_in", "pull_out", "pan_left", "pan_right", "hold"}:
             raise ValueError(f"Shot {index} has an unsupported camera move")
+        camera_path = shot.get("camera_path")
+        if camera_path is not None:
+            if not isinstance(camera_path, list) or len(camera_path) < 2:
+                raise ValueError(f"Shot {index} camera_path must contain at least two keyframes")
+            previous_at = -1.0
+            for keyframe in camera_path:
+                if not isinstance(keyframe, dict) or set(keyframe) != {"at", "zoom", "x", "y"}:
+                    raise ValueError(
+                        f"Shot {index} camera_path keyframes need exactly at, zoom, x and y"
+                    )
+                values = [keyframe[name] for name in ("at", "zoom", "x", "y")]
+                if any(not isinstance(value, (int, float)) or isinstance(value, bool)
+                       or not math.isfinite(value) for value in values):
+                    raise ValueError(f"Shot {index} camera_path values must be finite numbers")
+                at, zoom, x, y = values
+                if not 0 <= at <= 1 or at <= previous_at:
+                    raise ValueError(f"Shot {index} camera_path times must increase from 0 to 1")
+                if not 1.0 <= zoom <= 1.6 or not 0 <= x <= 1 or not 0 <= y <= 1:
+                    raise ValueError(f"Shot {index} camera_path zoom/anchors are out of range")
+                previous_at = at
+            if camera_path[0]["at"] != 0 or camera_path[-1]["at"] != 1:
+                raise ValueError(f"Shot {index} camera_path must start at 0 and end at 1")
         character_ids = shot.get("character_ids", [])
         if not isinstance(character_ids, list) or not all(
             isinstance(item, str) for item in character_ids
@@ -97,6 +120,12 @@ def create_example(output: str | Path) -> Path:
                 "image": "images/shot-01.png",
                 "duration": 4,
                 "camera": "push_in",
+                "camera_path": [
+                    {"at": 0.0, "zoom": 1.0, "x": 0.50, "y": 0.50},
+                    {"at": 0.30, "zoom": 1.07, "x": 0.51, "y": 0.49},
+                    {"at": 0.72, "zoom": 1.17, "x": 0.53, "y": 0.44},
+                    {"at": 1.0, "zoom": 1.24, "x": 0.53, "y": 0.42},
+                ],
                 "character_ids": ["MARA"],
                 "image_prompt": (
                     "Cinematic graphic-novel wide shot of an adult urban explorer "
@@ -110,6 +139,12 @@ def create_example(output: str | Path) -> Path:
                 "image": "images/shot-02.png",
                 "duration": 4,
                 "camera": "pull_out",
+                "camera_path": [
+                    {"at": 0.0, "zoom": 1.26, "x": 0.54, "y": 0.43},
+                    {"at": 0.32, "zoom": 1.18, "x": 0.52, "y": 0.46},
+                    {"at": 0.72, "zoom": 1.08, "x": 0.50, "y": 0.49},
+                    {"at": 1.0, "zoom": 1.015, "x": 0.50, "y": 0.50},
+                ],
                 "character_ids": ["MARA"],
                 "image_prompt": (
                     "Cinematic graphic-novel close-up of the same explorer's gloved "
