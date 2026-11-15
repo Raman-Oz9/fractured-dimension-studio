@@ -1,6 +1,6 @@
 # Fractured Dimension Studio
 
-An automated YouTube Shorts production system built around cinematic graphic-novel stills, expressive camera choreography, VoiceStudio.sh narration, and FFmpeg rendering.
+An automated YouTube Shorts production system built around cinematic graphic-novel stills, expressive camera choreography, Kokoro narration, and FFmpeg rendering.
 
 ## Current pipeline
 
@@ -10,14 +10,14 @@ An automated YouTube Shorts production system built around cinematic graphic-nov
 4. Add stable character descriptions to every shot prompt that references that character.
 5. Record which model generated each image in `generation-report.json`.
 6. Render stills into a vertical MP4 while preserving image proportions and using cinematic camera movement.
-7. Generate narration through the VoiceStudio.sh speech API, resolve a selected voice profile, and mux the WAV audio into the final MP4.
+7. Generate narration with Kokoro directly on the GitHub Actions runner (default `am_adam`, selectable `bm_george`) and mux the WAV audio into the final MP4. An optional remote VoiceStudio API backend is also supported when a reachable server is configured.
 
 ## Requirements
 
 - Python 3.11+
 - FFmpeg installed and available on `PATH`
 - Cloudflare account with Workers AI access and an API token for image generation
-- A reachable VoiceStudio.sh API-server base URL and API key for narration
+- Kokoro TTS dependencies for GitHub Actions narration (installed by the workflow)
 
 Install:
 
@@ -31,7 +31,7 @@ Create a starter project:
 fractured-dimension create-example --output work/example
 ```
 
-Set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` for image generation. Set `VOICESTUDIO_BASE_URL` and `VOICESTUDIO_API_KEY` for narration. In GitHub, add them under **Settings → Secrets and variables → Actions**. The URL must point to a reachable VoiceStudio API server (including its `/v1` prefix); this can be a self-hosted remote backend. The public VoiceStudio Cloud API is not currently released. Never commit the API key.
+Set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` for image generation. The GitHub Actions workflow installs Kokoro and runs it directly on the hosted runner; no local computer or external speech server is required. Choose `am_adam` or `bm_george` in the workflow dispatch form. For optional remote VoiceStudio mode, set `VOICE_BACKEND=voicestudio` and add `VOICESTUDIO_BASE_URL` (including `/v1`) and `VOICESTUDIO_API_KEY` as Actions secrets. VoiceStudio's documented API still requires a reachable server; its public Cloud API is not generally released. Never commit API keys.
 
 The GitHub Actions workflow lets you choose George, Michael, or Liam for each manual video run; the selected name is matched against the server's saved voice catalogue where available. It looks up the selected display name in the VoiceStudio voice catalogue and uses the matching saved profile ID. The default is George at 0.92 speed, with a restrained deep documentary-style delivery instruction. Change the workflow input to audition another available narrator. Voice availability depends on the profiles enabled in your VoiceStudio account.
 
