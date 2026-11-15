@@ -247,3 +247,52 @@ def test_character_shots_never_fall_back_to_text_only_models(tmp_path, monkeypat
     assert all(model in images.REFERENCE_MODELS for model, _ in shot_calls)
     report = json.loads((tmp_path / "generation-report.json").read_text())
     assert report[1]["reference_images_used"] == "true"
+
+
+def test_cloudflare_quota_falls_back_to_replicate_with_character_reference(tmp_path, monkeypatch):
+    import fractured_dimension.images as images
+
+    reference = tmp_path / "mara.png"
+    reference.write_bytes(b"reference")
+    monkeypatch.setenv("REPLICATE_API_TOKEN", "replicate-test-token")
+    monkeypatch.setattr(
+        images, "_request_image",
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            RuntimeError("Cloudflare image generation failed (429): daily quota exhausted")
+        ),
+    )
+    captured = {}
+
+    def fake_replicate(prompt, destination, references=None):
+        captured["prompt"] = prompt
+        captured["references"] = references
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(b"replicate-image")
+        return destination
+
+    monkeypatch.setattr(images, "_replicate_request", fake_replicate)
+    target, provider, model = images._request_image_with_fallback(
+        "Mara in a rainy city", tmp_path / "shot.png",
+        images.MODEL_IDS["flux-2-klein"], [reference]
+    )
+
+    assert target.read_bytes() == b"replicate-image"
+    assert provider == "replicate"
+    assert model == "black-forest-labs/flux-kontext-pro"
+    assert captured["references"] == [reference]
+
+
+def test_cloudflare_quota_without_replicate_secret_fails_clearly(tmp_path, monkeypatch):
+    import fractured_dimension.images as images
+
+    monkeypatch.delenv("REPLICATE_API_TOKEN", raising=False)
+    monkeypatch.setattr(
+        images, "_request_image",
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            RuntimeError("Cloudflare image generation failed (429): quota exhausted")
+        ),
+    )
+    with pytest.raises(RuntimeError, match="Add REPLICATE_API_TOKEN"):
+        images._request_image_with_fallback(
+            "A scene", tmp_path / "shot.png", images.DEFAULT_MODEL
+        )
