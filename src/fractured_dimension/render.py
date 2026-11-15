@@ -1,4 +1,4 @@
-"""FFmpeg still-image renderer with controlled cinematic camera movement."""
+"""FFmpeg still-image renderer with continuous, keyframed camera choreography."""
 
 from __future__ import annotations
 
@@ -9,25 +9,75 @@ from typing import Any
 
 from .voice import generate_voiceover
 
+# Camera anchors describe the visible crop: x=0 is left, x=1 is right;
+# y=0 is top, y=1 is bottom. Zoom and crop position move together.
+_CAMERA_PRESETS: dict[str, list[dict[str, float]]] = {
+    "push_in": [
+        {"at": 0.0, "zoom": 1.0, "x": 0.50, "y": 0.50},
+        {"at": 0.28, "zoom": 1.06, "x": 0.51, "y": 0.49},
+        {"at": 0.72, "zoom": 1.16, "x": 0.52, "y": 0.45},
+        {"at": 1.0, "zoom": 1.22, "x": 0.52, "y": 0.44},
+    ],
+    "pull_out": [
+        {"at": 0.0, "zoom": 1.24, "x": 0.50, "y": 0.48},
+        {"at": 0.30, "zoom": 1.17, "x": 0.49, "y": 0.49},
+        {"at": 0.72, "zoom": 1.08, "x": 0.50, "y": 0.50},
+        {"at": 1.0, "zoom": 1.015, "x": 0.50, "y": 0.50},
+    ],
+    # A pan crosses the illustration while a gentle push adds dimensionality.
+    "pan_left": [
+        {"at": 0.0, "zoom": 1.10, "x": 0.88, "y": 0.50},
+        {"at": 0.45, "zoom": 1.13, "x": 0.52, "y": 0.49},
+        {"at": 1.0, "zoom": 1.16, "x": 0.14, "y": 0.48},
+    ],
+    "pan_right": [
+        {"at": 0.0, "zoom": 1.10, "x": 0.12, "y": 0.50},
+        {"at": 0.45, "zoom": 1.13, "x": 0.48, "y": 0.49},
+        {"at": 1.0, "zoom": 1.16, "x": 0.86, "y": 0.48},
+    ],
+    # Even a hold has a restrained drift, avoiding a frozen slideshow frame.
+    "hold": [
+        {"at": 0.0, "zoom": 1.035, "x": 0.49, "y": 0.50},
+        {"at": 0.55, "zoom": 1.045, "x": 0.50, "y": 0.495},
+        {"at": 1.0, "zoom": 1.055, "x": 0.51, "y": 0.49},
+    ],
+}
 
-def _zoom_filter(move: str, frames: int) -> str:
-    # Fit by cropping excess width/height, never by stretching the source.
-    # The zoompan input and output therefore share the exact 9:16 aspect ratio.
-    if move == "push_in":
-        zoom = "min(zoom+0.0015,1.18)"
-        x, y = "iw/2-(iw/zoom/2)", "ih/2-(ih/zoom/2)"
-    elif move == "pull_out":
-        zoom = "if(eq(on,1),1.18,max(zoom-0.0015,1.0))"
-        x, y = "iw/2-(iw/zoom/2)", "ih/2-(ih/zoom/2)"
-    elif move == "pan_left":
-        zoom = "1.12"
-        x, y = "max(0,(iw-iw/zoom)*(1-on/{frames}))".format(frames=max(frames - 1, 1)), "ih/2-(ih/zoom/2)"
-    elif move == "pan_right":
-        zoom = "1.12"
-        x, y = "min(iw-iw/zoom,(iw-iw/zoom)*(on/{frames}))".format(frames=max(frames - 1, 1)), "ih/2-(ih/zoom/2)"
-    else:
-        zoom = "1.04"
-        x, y = "iw/2-(iw/zoom/2)", "ih/2-(ih/zoom/2)"
+
+def _number(value: float) -> str:
+    return f"{value:.7g}"
+
+
+def _keyframed_expression(
+    keyframes: list[dict[str, float]], field: str, frames: int
+) -> str:
+    """Build piecewise smoothstep interpolation over the shot's frame range."""
+    last_frame = max(frames - 1, 1)
+    progress = f"min(max(on/{last_frame},0),1)"
+    expression = _number(keyframes[-1][field])
+    for start, end in reversed(list(zip(keyframes, keyframes[1:]))):
+        span = end["at"] - start["at"]
+        local = f"min(max(({progress}-{_number(start['at'])})/{_number(span)},0),1)"
+        eased = f"({local}*{local}*(3-2*{local}))"
+        a, b = _number(start[field]), _number(end[field])
+        segment = f"({a}+({b}-{a})*{eased})"
+        expression = f"if(lte({progress},{_number(end['at'])}),{segment},{expression})"
+    return expression
+
+
+def _zoom_filter(
+    move: str,
+    frames: int,
+    camera_path: list[dict[str, float]] | None = None,
+) -> str:
+    """Create a continuous camera path; custom keyframes override the move preset."""
+    keyframes = camera_path or _CAMERA_PRESETS[move]
+    zoom = _keyframed_expression(keyframes, "zoom", frames)
+    anchor_x = _keyframed_expression(keyframes, "x", frames)
+    anchor_y = _keyframed_expression(keyframes, "y", frames)
+    # Convert normalized focal anchors into legal zoompan crop coordinates.
+    x = f"(iw-iw/zoom)*({anchor_x})"
+    y = f"(ih-ih/zoom)*({anchor_y})"
     return (
         "scale=1080:1920:force_original_aspect_ratio=increase,"
         "crop=1080:1920,setsar=1,"
@@ -52,7 +102,7 @@ def render_story(story: dict[str, Any], output: str | Path) -> Path:
         segment = output_path.parent / f".{output_path.stem}-segment-{index:03d}.mp4"
         command = [
             "ffmpeg", "-y", "-loop", "1", "-i", str(image_path),
-            "-vf", _zoom_filter(shot["camera"], frames),
+            "-vf", _zoom_filter(shot["camera"], frames, shot.get("camera_path")),
             "-frames:v", str(frames), "-an", "-c:v", "libx264",
             "-preset", "veryfast", "-crf", "20", str(segment),
         ]
@@ -62,7 +112,7 @@ def render_story(story: dict[str, Any], output: str | Path) -> Path:
     concat_file = output_path.parent / f".{output_path.stem}-concat.txt"
     silent_output = output_path.parent / f".{output_path.stem}-silent.mp4"
     concat_file.write_text(
-        "".join(f"file '{p.resolve().as_posix()}'\n" for p in segment_paths),
+        "".join(f"file '{p.resolve().as_posix()}'\\n" for p in segment_paths),
         encoding="utf-8",
     )
     try:
