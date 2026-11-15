@@ -1,0 +1,57 @@
+name: Generate Fractured Dimension Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      overwrite_images:
+        description: Regenerate images even if they already exist
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  generate-and-render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install project
+        run: python -m pip install .
+
+      - name: Create example story
+        run: fractured-dimension create-example --output work/example
+
+      - name: Generate story images
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ "${{ inputs.overwrite_images }}" = "true" ]; then
+            fractured-dimension generate work/example/story.json --overwrite
+          else
+            fractured-dimension generate work/example/story.json
+          fi
+
+      - name: Render vertical video
+        run: fractured-dimension render work/example/story.json --output output/fractured-dimension-short.mp4
+
+      - name: Upload generated video
+        uses: actions/upload-artifact@v4
+        with:
+          name: fractured-dimension-short
+          path: output/fractured-dimension-short.mp4
+          if-no-files-found: error
