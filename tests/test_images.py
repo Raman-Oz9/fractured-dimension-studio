@@ -91,7 +91,7 @@ def test_story_generation_injects_character_and_style_locks(tmp_path, monkeypatc
 
     captured = []
 
-    def fake_request(prompt, destination, model):
+    def fake_request(prompt, destination, model, reference_images=None):
         captured.append((prompt, model))
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_bytes(b"image")
