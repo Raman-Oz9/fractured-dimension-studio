@@ -76,10 +76,12 @@ def create_example(output: str | Path) -> Path:
     root = Path(output)
     (root / "images").mkdir(parents=True, exist_ok=True)
     story = {
-        "title": "The Signal Beneath the City",
+        "title": "The Day the Moon Vanished",
         "narration": (
-            "Beneath the city, a hidden signal awakens. "
-            "Mara reaches toward the light—and something answers."
+            "Imagine looking up at the night sky—and the Moon is gone. "
+            "For a few terrifying minutes, the tides seem to shift and the world holds its breath. "
+            "But the Moon has not vanished. A rare celestial alignment has hidden it from view. "
+            "The universe can make the impossible look real."
         ),
         "format": {"width": 1080, "height": 1920, "fps": 30},
         "style_lock": (
@@ -124,44 +126,41 @@ def create_example(output: str | Path) -> Path:
         },
         "shots": [
             {
-                "image": "images/shot-01.png",
-                "duration": 4,
-                "camera": "push_in",
+                "image": "images/shot-01.png", "duration": 4, "camera": "push_in",
                 "camera_path": [
-                    {"at": 0.0, "zoom": 1.0, "x": 0.50, "y": 0.62},
-                    {"at": 0.24, "zoom": 1.13, "x": 0.54, "y": 0.66},
-                    {"at": 0.56, "zoom": 1.31, "x": 0.60, "y": 0.48},
-                    {"at": 0.82, "zoom": 1.43, "x": 0.55, "y": 0.39},
-                    {"at": 1.0, "zoom": 1.34, "x": 0.43, "y": 0.42},
+                    {"at": 0.0, "zoom": 1.0, "x": 0.50, "y": 0.52},
+                    {"at": 0.45, "zoom": 1.22, "x": 0.52, "y": 0.43},
+                    {"at": 1.0, "zoom": 1.43, "x": 0.50, "y": 0.36}
                 ],
-                "character_ids": ["MARA"],
-                "image_prompt": (
-                    "Cinematic graphic-novel wide shot of an adult urban explorer "
-                    "standing in a futuristic city plaza at night, a mysterious bright "
-                    "cyan geometric light glowing from a circular symbol on the pavement. "
-                    "Compose three readable depth planes: rain-streaked railing and reflective puddles in the foreground; Mara and the glowing pavement symbol in the middle ground; layered plaza architecture and distant city towers in the background. Show her full body and the surrounding architecture, dramatic "
-                    "wide composition, rain reflections."
-                ),
+                "image_prompt": "A breathtaking retro illustrated graphic-novel view of a quiet modern city at midnight, crowds on rooftops staring upward at a completely moonless deep navy sky, empty circular gap among stars where the full moon should be, dramatic silhouettes, layered rooftops and distant skyline, eerie amber streetlights, no text."
             },
             {
-                "image": "images/shot-02.png",
-                "duration": 4,
-                "camera": "pull_out",
+                "image": "images/shot-02.png", "duration": 4, "camera": "pan_left",
                 "camera_path": [
-                    {"at": 0.0, "zoom": 1.52, "x": 0.52, "y": 0.91},
-                    {"at": 0.28, "zoom": 1.40, "x": 0.56, "y": 0.79},
-                    {"at": 0.62, "zoom": 1.19, "x": 0.54, "y": 0.59},
-                    {"at": 0.84, "zoom": 1.08, "x": 0.51, "y": 0.51},
-                    {"at": 1.0, "zoom": 1.04, "x": 0.50, "y": 0.48},
+                    {"at": 0.0, "zoom": 1.10, "x": 0.88, "y": 0.48},
+                    {"at": 0.5, "zoom": 1.22, "x": 0.50, "y": 0.46},
+                    {"at": 1.0, "zoom": 1.30, "x": 0.14, "y": 0.44}
                 ],
-                "character_ids": ["MARA"],
-                "image_prompt": (
-                    "Cinematic graphic-novel close-up of the same explorer's gloved "
-                    "hand reaching toward a small floating cyan geometric hologram. "
-                    "Place the gloved hand and hologram in the foreground, Mara’s upper body in the middle ground, and recognizable plaza lights and architecture behind her. Preserve enough surrounding context for a smooth pull-back. Begin tight on her hand and the hologram, with part of her sleeve "
-                    "and face entering the composition, violet and amber city lights."
-                ),
+                "image_prompt": "A cinematic retro science-comic illustration of a vast ocean at night under an unnaturally dark sky, powerful waves rolling toward a distant coastal city, tiny lighthouse beam cutting through mist, layered foreground foam and background skyline, moody teal, rust and muted cream palette, no text."
             },
+            {
+                "image": "images/shot-03.png", "duration": 4, "camera": "push_in",
+                "camera_path": [
+                    {"at": 0.0, "zoom": 1.0, "x": 0.50, "y": 0.50},
+                    {"at": 0.5, "zoom": 1.24, "x": 0.56, "y": 0.43},
+                    {"at": 1.0, "zoom": 1.48, "x": 0.60, "y": 0.40}
+                ],
+                "image_prompt": "A dramatic vintage editorial astronomy illustration: enormous dark silhouette of Earth in space, bright sun and distant planets aligned behind it, the Moon obscured in a rare celestial alignment, intricate star field, luminous amber rim light and faded teal shadows, no labels or text."
+            },
+            {
+                "image": "images/shot-04.png", "duration": 4, "camera": "pull_out",
+                "camera_path": [
+                    {"at": 0.0, "zoom": 1.50, "x": 0.52, "y": 0.48},
+                    {"at": 0.5, "zoom": 1.24, "x": 0.50, "y": 0.50},
+                    {"at": 1.0, "zoom": 1.02, "x": 0.50, "y": 0.50}
+                ],
+                "image_prompt": "A spectacular retro printed-comic view of the Moon reappearing above Earth's curved horizon, glowing pale cream against a deep starry sky, tiny spacecraft silhouette for scale, cinematic reveal, layered atmospheric depth, halftone shading and worn paper texture, no text."
+            }
         ],
     }
     validate_story(story)
