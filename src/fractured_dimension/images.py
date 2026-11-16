@@ -8,6 +8,8 @@ import json
 import os
 import re
 import uuid
+import time
+import urllib.parse
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -319,32 +321,143 @@ def _replicate_request(
     return destination
 
 
+def _save_image_response(response, destination: Path, provider: str) -> tuple[Path, str]:
+    body = response.read()
+    content_type = response.headers.get("Content-Type", "")
+    if not body or (content_type and not content_type.startswith("image/")):
+        raise RuntimeError(f"{provider} did not return an image.")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_bytes(body)
+    return destination, provider
+
+
+def _pollinations_image(prompt: str, destination: Path) -> tuple[Path, str]:
+    """Public FLUX image endpoint; no API key, subject to availability and rate limits."""
+    url = (
+        "https://image.pollinations.ai/prompt/"
+        + urllib.parse.quote(prompt[:900])
+        + "?width=768&height=1344&nologo=true&model=flux&seed="
+        + str(uuid.uuid4().int % 1_000_000)
+    )
+    try:
+        with urlopen(Request(url, headers={"User-Agent": "FracturedDimension/1.0"}), timeout=180) as response:
+            return _save_image_response(response, destination, "pollinations-flux")
+    except (HTTPError, URLError, TimeoutError) as exc:
+        raise RuntimeError(f"Pollinations FLUX unavailable: {exc}") from exc
+
+
+def _ovh_image(prompt: str, destination: Path) -> tuple[Path, str]:
+    """OVHcloud public SDXL endpoint; anonymous access is rate-limited."""
+    endpoint = "https://stable-diffusion-xl.endpoints.kepler.ai.cloud.ovh.net/api/text2image"
+    headers = {"Content-Type": "application/json", "Accept": "application/octet-stream"}
+    token = os.getenv("OVH_AI_TOKEN", "").strip()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    payload = json.dumps({
+        "prompt": prompt[:1400] + ", cinematic lighting, intricate details, sharp focus",
+        "negative_prompt": "text, watermark, logo, blurry, deformed, distorted, extra limbs, low quality",
+    }).encode("utf-8")
+    try:
+        with urlopen(Request(endpoint, data=payload, headers=headers, method="POST"), timeout=180) as response:
+            return _save_image_response(response, destination, "ovh-stable-diffusion-xl")
+    except (HTTPError, URLError, TimeoutError) as exc:
+        raise RuntimeError(f"OVH SDXL unavailable: {exc}") from exc
+
+
+def _horde_image(prompt: str, destination: Path) -> tuple[Path, str]:
+    """AI Horde crowdsourced generation; free, but queue times vary."""
+    base = "https://aihorde.net/api/v2/"
+    headers = {
+        "apikey": os.getenv("HORDE_API_KEY", "").strip() or "0000000000",
+        "Client-Agent": "fractured-dimension:1.0:github.com/Raman-Oz9/fractured-dimension-studio",
+        "Content-Type": "application/json",
+    }
+    payload = json.dumps({
+        "prompt": prompt[:900] + " ### text, watermark, blurry, deformed",
+        "params": {"width": 576, "height": 1024, "steps": 25, "n": 1},
+        "nsfw": False, "censor_nsfw": True, "r2": True,
+    }).encode("utf-8")
+    try:
+        with urlopen(Request(base + "generate/async", data=payload, headers=headers, method="POST"), timeout=60) as response:
+            job_id = json.loads(response.read())["id"]
+        deadline = time.time() + 240
+        while time.time() < deadline:
+            time.sleep(5)
+            with urlopen(Request(base + f"generate/check/{job_id}", headers=headers), timeout=30) as response:
+                status = json.loads(response.read())
+            if status.get("faulted"):
+                raise RuntimeError("AI Horde generation job faulted.")
+            if status.get("done"):
+                with urlopen(Request(base + f"generate/status/{job_id}", headers=headers), timeout=30) as response:
+                    result = json.loads(response.read())
+                generations = result.get("generations") or []
+                if not generations or generations[0].get("censored"):
+                    raise RuntimeError("AI Horde returned no usable image.")
+                with urlopen(Request(generations[0]["img"]), timeout=90) as response:
+                    return _save_image_response(response, destination, "ai-horde")
+        raise RuntimeError("AI Horde queue timed out after 4 minutes.")
+    except (HTTPError, URLError, TimeoutError, KeyError, ValueError) as exc:
+        raise RuntimeError(f"AI Horde unavailable: {exc}") from exc
+
+
+def _free_provider_fallback(
+    prompt: str, destination: Path
+) -> tuple[Path, str, str]:
+    failures = []
+    for provider, generate in (
+        ("pollinations-flux", _pollinations_image),
+        ("ovh-stable-diffusion-xl", _ovh_image),
+        ("ai-horde", _horde_image),
+    ):
+        try:
+            path, actual_provider = generate(prompt, destination)
+            return path, actual_provider, actual_provider
+        except Exception as exc:
+            failures.append(f"{provider}: {exc}")
+            print(f"Free image provider {provider} failed: {exc}")
+    raise RuntimeError("All public free image providers failed: " + " | ".join(failures))
+
+
 def _request_image_with_fallback(
     prompt: str,
     destination: Path,
     model: str,
     reference_images: list[Path] | None = None,
 ) -> tuple[Path, str, str]:
-    """Try Cloudflare first, then Replicate on quota/auth failures."""
+    """Use reference-capable Cloudflare when configured; otherwise free public providers.
+
+    Public fallback services are text-to-image only. Character identity prompts are
+    retained, but actual reference-image conditioning is unavailable on those services.
+    """
+    has_cloudflare = bool(
+        os.getenv("CLOUDFLARE_ACCOUNT_ID") and os.getenv("CLOUDFLARE_API_TOKEN")
+    )
+
+    # For character shots, try the reference-capable provider first so real image
+    # conditioning is preserved whenever the user has configured it.
+    if reference_images and has_cloudflare:
+        try:
+            result = _request_image(prompt, destination, model, reference_images)
+            return result, "cloudflare", model
+        except RuntimeError as exc:
+            print(f"Cloudflare reference generation failed; trying public free text-to-image providers: {exc}")
+
     try:
-        result = _request_image(prompt, destination, model, reference_images)
-        return result, "cloudflare", model
-    except RuntimeError as exc:
-        status = re.search(r"failed \((\d{3})\)", str(exc))
-        if not status or int(status.group(1)) not in {401, 403, 429}:
-            raise
-        if not os.getenv("REPLICATE_API_TOKEN"):
+        return _free_provider_fallback(prompt, destination)
+    except RuntimeError as free_error:
+        if has_cloudflare and not reference_images:
+            try:
+                result = _request_image(prompt, destination, model)
+                return result, "cloudflare", model
+            except RuntimeError as cf_error:
+                raise RuntimeError(f"{free_error}\nCloudflare fallback also failed: {cf_error}") from cf_error
+        if reference_images and not has_cloudflare:
             raise RuntimeError(
-                f"{exc}\nReplicate fallback is not configured. Add REPLICATE_API_TOKEN "
-                "to GitHub Actions secrets to enable the independent provider."
-            ) from exc
-        print(f"Cloudflare returned HTTP {status.group(1)}; switching to Replicate.")
-        result = _replicate_request(prompt, destination, reference_images)
-        replicate_model = (
-            "black-forest-labs/flux-kontext-pro"
-            if reference_images else "black-forest-labs/flux-schnell"
-        )
-        return result, "replicate", replicate_model
+                f"{free_error}\nNo reference-image provider is configured. Public free fallbacks "
+                "use the written character identity prompt, not the actual reference image."
+            ) from free_error
+        raise
+
 
 def _character_profile(story: dict, character_id: str) -> dict:
     profile = story.get("character_bible", {}).get(character_id)
