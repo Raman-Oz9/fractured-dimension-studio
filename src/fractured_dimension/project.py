@@ -121,10 +121,11 @@ def create_example(output: str | Path) -> Path:
                 "duration": 4,
                 "camera": "push_in",
                 "camera_path": [
-                    {"at": 0.0, "zoom": 1.0, "x": 0.50, "y": 0.50},
-                    {"at": 0.30, "zoom": 1.07, "x": 0.51, "y": 0.49},
-                    {"at": 0.72, "zoom": 1.17, "x": 0.53, "y": 0.44},
-                    {"at": 1.0, "zoom": 1.24, "x": 0.53, "y": 0.42},
+                    {"at": 0.0, "zoom": 1.0, "x": 0.50, "y": 0.62},
+                    {"at": 0.24, "zoom": 1.13, "x": 0.54, "y": 0.66},
+                    {"at": 0.56, "zoom": 1.31, "x": 0.60, "y": 0.48},
+                    {"at": 0.82, "zoom": 1.43, "x": 0.55, "y": 0.39},
+                    {"at": 1.0, "zoom": 1.34, "x": 0.43, "y": 0.42},
                 ],
                 "character_ids": ["MARA"],
                 "image_prompt": (
@@ -140,10 +141,11 @@ def create_example(output: str | Path) -> Path:
                 "duration": 4,
                 "camera": "pull_out",
                 "camera_path": [
-                    {"at": 0.0, "zoom": 1.26, "x": 0.54, "y": 0.43},
-                    {"at": 0.32, "zoom": 1.18, "x": 0.52, "y": 0.46},
-                    {"at": 0.72, "zoom": 1.08, "x": 0.50, "y": 0.49},
-                    {"at": 1.0, "zoom": 1.015, "x": 0.50, "y": 0.50},
+                    {"at": 0.0, "zoom": 1.52, "x": 0.52, "y": 0.91},
+                    {"at": 0.28, "zoom": 1.40, "x": 0.56, "y": 0.79},
+                    {"at": 0.62, "zoom": 1.19, "x": 0.54, "y": 0.59},
+                    {"at": 0.84, "zoom": 1.08, "x": 0.51, "y": 0.51},
+                    {"at": 1.0, "zoom": 1.04, "x": 0.50, "y": 0.48},
                 ],
                 "character_ids": ["MARA"],
                 "image_prompt": (
