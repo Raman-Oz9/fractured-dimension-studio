@@ -81,16 +81,15 @@ The default example deliberately uses a wide-to-detail move on its first image a
 
 ## Free GitHub image generation
 
-The GitHub Actions workflow installs the renderer automatically and tries public image-generation providers in this order:
+The GitHub Actions workflow installs the renderer automatically and uses Cloudflare Workers AI as the primary image-generation provider whenever both `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` are configured. If Cloudflare is unavailable or its daily quota is exhausted, it automatically falls back in this order:
 
 1. Pollinations FLUX — no API key required.
 2. OVHcloud Stable Diffusion XL — public endpoint; optional `OVH_AI_TOKEN` can be supplied as a repository secret.
 3. AI Horde — crowdsourced generation; optional `HORDE_API_KEY` can be supplied, otherwise the public anonymous key is used.
-4. Cloudflare Workers AI — optional final fallback only when both Cloudflare secrets are configured.
 
 No Replicate account, paid inference API, or billing setup is required by the default workflow. Public providers are community/free-tier services, so availability, queue times, rate limits, and usage policies can change; generation is not guaranteed to be unlimited or always available. The workflow runs on GitHub's standard CPU runner, not a free GPU.
 
-For character shots, Cloudflare's reference-capable FLUX.2 models can use actual reference images when configured. The public Pollinations, OVH SDXL, and AI Horde fallbacks are text-to-image services: they retain the written character identity/style locks but cannot ingest the character reference image. The generation report records whether actual reference conditioning was used.
+For character shots, Cloudflare's reference-capable models can use actual reference images when configured. The public Pollinations, OVH SDXL, and AI Horde fallbacks are text-to-image services: they retain the written character identity/style locks but cannot ingest the character reference image. The generation report records whether actual reference conditioning was used.
 
 ## Character continuity
 
