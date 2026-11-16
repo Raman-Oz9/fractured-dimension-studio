@@ -117,6 +117,11 @@ def _request_image(
             "Image generation needs CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN."
         )
 
+    # Cloudflare Workers AI rejects prompts above 2,048 characters.
+    # Preserve both the scene opening and the continuity/style ending within the limit.
+    if len(prompt) > 1900:
+        prompt = prompt[:1500].rstrip() + "\n\n" + prompt[-350:].lstrip()
+
     endpoint = (
         f"https://api.cloudflare.com/client/v4/accounts/{account_id}"
         f"/ai/run/{model}"
