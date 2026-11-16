@@ -146,10 +146,13 @@ def render_procedural_story(story: dict, output: str|Path)->Path:
         voice=out.with_name("."+out.stem+"-voice.wav")
         generate_voiceover(narration,voice)
         with wave.open(str(voice),"rb") as wf: speech=wf.getnframes()/wf.getframerate()
-        if speech < duration*.94:
+        # Pitch-preserving time stretch makes spoken narration cover the full picture.
+        # Reject extreme ratios rather than create a long silent tail or clipped speech.
+        tempo=speech/duration
+        if not 0.65 <= tempo <= 1.35:
             voice.unlink(missing_ok=True); silent.unlink(missing_ok=True)
-            raise RuntimeError(f"Narration QC failed: {speech:.1f}s spoken audio for {duration:.1f}s video. No silent padding will be added.")
-        subprocess.run(["ffmpeg","-y","-i",str(silent),"-i",str(voice),"-map","0:v:0","-map","1:a:0","-c:v","copy","-c:a","aac","-b:a","192k","-t",str(duration),"-movflags","+faststart",str(out)],check=True,capture_output=True,text=True)
+            raise RuntimeError(f"Narration fit QC failed: {speech:.1f}s speech for {duration:.1f}s picture (tempo ratio {tempo:.2f}). Adjust the script or episode duration.")
+        subprocess.run(["ffmpeg","-y","-i",str(silent),"-i",str(voice),"-map","0:v:0","-map","1:a:0","-c:v","copy","-af",f"atempo={tempo:.6f},afade=t=out:st={max(0,duration-0.28):.3f}:d=0.28","-c:a","aac","-b:a","192k","-t",str(duration),"-movflags","+faststart",str(out)],check=True,capture_output=True,text=True)
         voice.unlink(missing_ok=True); silent.unlink(missing_ok=True)
     else: silent.replace(out)
     return out
