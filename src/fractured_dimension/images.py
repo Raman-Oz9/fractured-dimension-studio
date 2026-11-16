@@ -8,6 +8,8 @@ import json
 import os
 import re
 import uuid
+import time
+import urllib.parse
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -209,114 +211,101 @@ def generate_image(
 
 
 
-def _replicate_request(
-    prompt: str, destination: Path, reference_images: list[Path] | None = None
-) -> Path:
-    """Generate with Replicate; use Kontext when a character reference is supplied."""
-    token = os.getenv("REPLICATE_API_TOKEN")
-    if not token:
-        raise RuntimeError("Replicate fallback needs REPLICATE_API_TOKEN.")
+def _save_image_response(response, destination: Path, provider: str) -> tuple[Path, str]:
+    body = response.read()
+    content_type = response.headers.get("Content-Type", "")
+    if not body or (content_type and not content_type.startswith("image/")):
+        raise RuntimeError(f"{provider} did not return an image.")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_bytes(body)
+    return destination, provider
 
-    references = reference_images or []
-    if references:
-        model = "black-forest-labs/flux-kontext-pro"
-        reference = references[0]
-        if not reference.is_file():
-            raise FileNotFoundError(f"Character reference image not found: {reference}")
-        with Image.open(reference) as source:
-            source.load()
-            source.thumbnail((384, 384))
-            buffer = io.BytesIO()
-            source.convert("RGB").save(buffer, format="JPEG", quality=65, optimize=True)
-        encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
-        image_input = f"data:image/jpeg;base64,{encoded}"
-        if len(image_input) > 256 * 1024:
-            raise RuntimeError(
-                "Compressed character reference exceeds Replicate's data-URL limit."
-            )
-        inputs = {
-            "prompt": prompt,
-            "input_image": image_input,
-            "aspect_ratio": "match_input_image",
-            "output_format": "png",
-            "safety_tolerance": 2,
-            "prompt_upsampling": False,
-        }
-        if len(references) > 1:
-            print("Replicate FLUX Kontext accepts one reference here; using the first character reference.")
-    else:
-        model = "black-forest-labs/flux-schnell"
-        inputs = {
-            "prompt": prompt,
-            "aspect_ratio": "9:16",
-            "output_format": "png",
-            "num_outputs": 1,
-        }
 
-    endpoint = f"https://api.replicate.com/v1/models/{model}/predictions"
-    payload = json.dumps({"input": inputs}).encode("utf-8")
-    request = Request(
-        endpoint,
-        data=payload,
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-            "Prefer": "wait=60",
-        },
-        method="POST",
+def _pollinations_image(prompt: str, destination: Path) -> tuple[Path, str]:
+    """Public FLUX image endpoint; no API key, subject to availability and rate limits."""
+    url = (
+        "https://image.pollinations.ai/prompt/"
+        + urllib.parse.quote(prompt[:900])
+        + "?width=768&height=1344&nologo=true&model=flux&seed="
+        + str(uuid.uuid4().int % 1_000_000)
     )
     try:
-        with urlopen(request, timeout=240) as response:
-            prediction = json.loads(response.read())
-    except HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")[:1200]
-        raise RuntimeError(f"Replicate image generation failed ({exc.code}): {detail}") from exc
-    except (URLError, ValueError) as exc:
-        raise RuntimeError(f"Could not complete Replicate image request: {exc}") from exc
+        with urlopen(Request(url, headers={"User-Agent": "FracturedDimension/1.0"}), timeout=180) as response:
+            return _save_image_response(response, destination, "pollinations-flux")
+    except (HTTPError, URLError, TimeoutError) as exc:
+        raise RuntimeError(f"Pollinations FLUX unavailable: {exc}") from exc
 
-    # Replicate may return a still-running prediction after the synchronous wait.
-    for _ in range(60):
-        status = prediction.get("status")
-        if status in {"succeeded", "failed", "canceled"}:
-            break
-        poll_url = (prediction.get("urls") or {}).get("get")
-        if not poll_url:
-            raise RuntimeError("Replicate returned a pending prediction without a polling URL.")
-        import time
-        time.sleep(2)
-        poll = Request(
-            poll_url,
-            headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
-        )
-        try:
-            with urlopen(poll, timeout=120) as response:
-                prediction = json.loads(response.read())
-        except (HTTPError, URLError, ValueError) as exc:
-            raise RuntimeError(f"Could not poll Replicate prediction: {exc}") from exc
-    else:
-        raise RuntimeError("Replicate prediction did not finish within the polling limit.")
 
-    if prediction.get("status") != "succeeded":
-        raise RuntimeError(
-            "Replicate prediction "
-            + str(prediction.get("status"))
-            + ": "
-            + str(prediction.get("error") or "no error detail")
-        )
-    output = prediction.get("output")
-    output_url = output[0] if isinstance(output, list) and output else output
-    if not isinstance(output_url, str) or not output_url.startswith("https://"):
-        raise RuntimeError("Replicate returned no valid image URL.")
+def _ovh_image(prompt: str, destination: Path) -> tuple[Path, str]:
+    """OVHcloud public SDXL endpoint; anonymous access is rate-limited."""
+    endpoint = "https://stable-diffusion-xl.endpoints.kepler.ai.cloud.ovh.net/api/text2image"
+    headers = {"Content-Type": "application/json", "Accept": "application/octet-stream"}
+    token = os.getenv("OVH_AI_TOKEN", "").strip()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    payload = json.dumps({
+        "prompt": prompt[:1400] + ", cinematic lighting, intricate details, sharp focus",
+        "negative_prompt": "text, watermark, logo, blurry, deformed, distorted, extra limbs, low quality",
+    }).encode("utf-8")
     try:
-        with urlopen(Request(output_url), timeout=240) as response:
-            image_bytes = response.read()
-    except (HTTPError, URLError) as exc:
-        raise RuntimeError(f"Could not download Replicate image output: {exc}") from exc
-    if not image_bytes:
-        raise RuntimeError("Replicate returned an empty image.")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_bytes(image_bytes)
-    return destination
+        with urlopen(Request(endpoint, data=payload, headers=headers, method="POST"), timeout=180) as response:
+            return _save_image_response(response, destination, "ovh-stable-diffusion-xl")
+    except (HTTPError, URLError, TimeoutError) as exc:
+        raise RuntimeError(f"OVH SDXL unavailable: {exc}") from exc
+
+
+def _horde_image(prompt: str, destination: Path) -> tuple[Path, str]:
+    """AI Horde crowdsourced generation; free, but queue times vary."""
+    base = "https://aihorde.net/api/v2/"
+    headers = {
+        "apikey": os.getenv("HORDE_API_KEY", "").strip() or "0000000000",
+        "Client-Agent": "fractured-dimension:1.0:github.com/Raman-Oz9/fractured-dimension-studio",
+        "Content-Type": "application/json",
+    }
+    payload = json.dumps({
+        "prompt": prompt[:900] + " ### text, watermark, blurry, deformed",
+        "params": {"width": 576, "height": 1024, "steps": 25, "n": 1},
+        "nsfw": False, "censor_nsfw": True, "r2": True,
+    }).encode("utf-8")
+    try:
+        with urlopen(Request(base + "generate/async", data=payload, headers=headers, method="POST"), timeout=60) as response:
+            job_id = json.loads(response.read())["id"]
+        deadline = time.time() + 240
+        while time.time() < deadline:
+            time.sleep(5)
+            with urlopen(Request(base + f"generate/check/{job_id}", headers=headers), timeout=30) as response:
+                status = json.loads(response.read())
+            if status.get("faulted"):
+                raise RuntimeError("AI Horde generation job faulted.")
+            if status.get("done"):
+                with urlopen(Request(base + f"generate/status/{job_id}", headers=headers), timeout=30) as response:
+                    result = json.loads(response.read())
+                generations = result.get("generations") or []
+                if not generations or generations[0].get("censored"):
+                    raise RuntimeError("AI Horde returned no usable image.")
+                with urlopen(Request(generations[0]["img"]), timeout=90) as response:
+                    return _save_image_response(response, destination, "ai-horde")
+        raise RuntimeError("AI Horde queue timed out after 4 minutes.")
+    except (HTTPError, URLError, TimeoutError, KeyError, ValueError) as exc:
+        raise RuntimeError(f"AI Horde unavailable: {exc}") from exc
+
+
+def _free_provider_fallback(
+    prompt: str, destination: Path
+) -> tuple[Path, str, str]:
+    failures = []
+    for provider, generate in (
+        ("ovh-stable-diffusion-xl", _ovh_image),
+        ("ai-horde", _horde_image),
+        ("pollinations-flux", _pollinations_image),
+    ):
+        try:
+            path, actual_provider = generate(prompt, destination)
+            return path, actual_provider, actual_provider
+        except Exception as exc:
+            failures.append(f"{provider}: {exc}")
+            print(f"Free image provider {provider} failed: {exc}")
+    raise RuntimeError("All public free image providers failed: " + " | ".join(failures))
 
 
 def _request_image_with_fallback(
@@ -325,26 +314,40 @@ def _request_image_with_fallback(
     model: str,
     reference_images: list[Path] | None = None,
 ) -> tuple[Path, str, str]:
-    """Try Cloudflare first, then Replicate on quota/auth failures."""
+    """Prefer Cloudflare first; use public free providers only as automatic backups.
+
+    Cloudflare quota/rate-limit failures fall through to public providers. The public
+    providers are text-to-image only and cannot condition on reference image files.
+    """
+    has_cloudflare = bool(
+        os.getenv("CLOUDFLARE_ACCOUNT_ID") and os.getenv("CLOUDFLARE_API_TOKEN")
+    )
+
+    if has_cloudflare:
+        try:
+            result = _request_image(prompt, destination, model, reference_images)
+            return result, "cloudflare", model
+        except RuntimeError as exc:
+            print(
+                "Cloudflare image generation unavailable (possibly daily quota); "
+                f"trying free backup providers: {exc}"
+            )
+
     try:
-        result = _request_image(prompt, destination, model, reference_images)
-        return result, "cloudflare", model
-    except RuntimeError as exc:
-        status = re.search(r"failed \((\d{3})\)", str(exc))
-        if not status or int(status.group(1)) not in {401, 403, 429}:
-            raise
-        if not os.getenv("REPLICATE_API_TOKEN"):
+        return _free_provider_fallback(prompt, destination)
+    except RuntimeError as backup_error:
+        if not has_cloudflare:
             raise RuntimeError(
-                f"{exc}\nReplicate fallback is not configured. Add REPLICATE_API_TOKEN "
-                "to GitHub Actions secrets to enable the independent provider."
-            ) from exc
-        print(f"Cloudflare returned HTTP {status.group(1)}; switching to Replicate.")
-        result = _replicate_request(prompt, destination, reference_images)
-        replicate_model = (
-            "black-forest-labs/flux-kontext-pro"
-            if reference_images else "black-forest-labs/flux-schnell"
-        )
-        return result, "replicate", replicate_model
+                f"{backup_error}\nCloudflare credentials are not configured. "
+                "Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN to enable "
+                "the preferred default image provider."
+            ) from backup_error
+        raise RuntimeError(
+            f"Cloudflare and all free backup image providers failed. "
+            f"Backups: {backup_error}"
+        ) from backup_error
+
+
 
 def _character_profile(story: dict, character_id: str) -> dict:
     profile = story.get("character_bible", {}).get(character_id)
@@ -547,7 +550,7 @@ def generate_story_images(story: dict, *, overwrite: bool = False) -> list[Path]
             "provider": selected_provider,
             "model": selected_model,
             "reference_images_used": str(
-                bool(references and selected_model in REFERENCE_MODELS)
+                bool(references and selected_provider == "cloudflare" and selected_model in REFERENCE_MODELS)
             ).lower(),
         })
         print(f"Shot {index}: generated with {selected_model}")
