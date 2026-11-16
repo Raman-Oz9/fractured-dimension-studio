@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+import re
+import wave
 from pathlib import Path
 from typing import Any
 
@@ -86,6 +88,58 @@ def _zoom_filter(
     )
 
 
+def _ass_time(seconds: float) -> str:
+    centiseconds = max(0, round(seconds * 100))
+    hours, remainder = divmod(centiseconds, 360000)
+    minutes, remainder = divmod(remainder, 6000)
+    whole_seconds, cs = divmod(remainder, 100)
+    return f"{hours}:{minutes:02d}:{whole_seconds:02d}.{cs:02d}"
+
+
+def _write_ass_captions(text: str, duration: float, path: Path) -> None:
+    """Write stylish, approximate word-timed ASS captions for the narration."""
+    words = re.findall(r"\S+", text.strip())
+    if not words or duration <= 0:
+        return
+
+    header = """[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Retro,DejaVu Sans,58,&H00E9E2D2,&H003BC7FF,&H00130F0B,&H990D171F,-1,0,0,0,100,100,0.5,0,3,2.5,1.5,2,90,90,250,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+    # Four-word phrases keep each caption readable on a phone screen.
+    chunks = [words[i:i + 4] for i in range(0, len(words), 4)]
+    weights = [sum(max(len(re.sub(r"\W", "", w)), 1) for w in chunk) for chunk in chunks]
+    total_weight = sum(weights)
+    cursor = 0.0
+    events: list[str] = []
+    for chunk, weight in zip(chunks, weights):
+        start = cursor
+        end = start + duration * weight / total_weight
+        chunk_weight = sum(max(len(re.sub(r"\W", "", w)), 1) for w in chunk)
+        parts: list[str] = []
+        for word in chunk:
+            word_weight = max(len(re.sub(r"\W", "", word)), 1)
+            karaoke_cs = max(1, round((end - start) * word_weight / chunk_weight * 100))
+            safe_word = word.replace("{", r"\{").replace("}", r"\}")
+            parts.append(f"{{\\k{karaoke_cs}}}{safe_word}")
+        events.append(
+            f"Dialogue: 0,{_ass_time(start)},{_ass_time(end)},Retro,,0,0,0,,"
+            + " ".join(parts)
+        )
+        cursor = end
+    path.write_text(header + "\n".join(events) + "\n", encoding="utf-8")
+
+
 def render_story(story: dict[str, Any], output: str | Path) -> Path:
     if shutil.which("ffmpeg") is None:
         raise RuntimeError("FFmpeg was not found. Install FFmpeg and make sure it is on PATH.")
@@ -124,13 +178,20 @@ def render_story(story: dict[str, Any], output: str | Path) -> Path:
         narration = story.get("narration")
         if narration:
             voice_path = output_path.parent / f".{output_path.stem}-voice.wav"
+            caption_path = output_path.parent / f".{output_path.stem}-captions.ass"
             try:
                 generate_voiceover(str(narration), voice_path)
                 duration = sum(float(shot["duration"]) for shot in story["shots"])
+                with wave.open(str(voice_path), "rb") as audio:
+                    audio_duration = audio.getnframes() / float(audio.getframerate())
+                _write_ass_captions(str(narration), min(audio_duration, duration), caption_path)
+                escaped_caption_path = caption_path.resolve().as_posix().replace(":", r"\:").replace("'", r"\'")
                 subprocess.run(
                     [
                         "ffmpeg", "-y", "-i", str(silent_output), "-i", str(voice_path),
-                        "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy",
+                        "-vf", f"subtitles='{escaped_caption_path}'",
+                        "-map", "0:v:0", "-map", "1:a:0", "-c:v", "libx264",
+                        "-preset", "veryfast", "-crf", "19",
                         "-c:a", "aac", "-b:a", "192k", "-af", "apad",
                         "-t", str(duration), "-movflags", "+faststart", str(output_path),
                     ],
@@ -138,6 +199,7 @@ def render_story(story: dict[str, Any], output: str | Path) -> Path:
                 )
             finally:
                 voice_path.unlink(missing_ok=True)
+                caption_path.unlink(missing_ok=True)
                 silent_output.unlink(missing_ok=True)
         else:
             silent_output.replace(output_path)
