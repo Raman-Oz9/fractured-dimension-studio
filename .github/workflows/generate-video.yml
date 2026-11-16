@@ -74,7 +74,7 @@ jobs:
       - name: Create example story
         run: fractured-dimension create-example --output work/example
 
-      - name: Generate story images (free provider fallback)
+      - name: Generate story images (Cloudflare primary, free backups)
         env:
           OVH_AI_TOKEN: ${{ secrets.OVH_AI_TOKEN }}
           HORDE_API_KEY: ${{ secrets.HORDE_API_KEY }}
