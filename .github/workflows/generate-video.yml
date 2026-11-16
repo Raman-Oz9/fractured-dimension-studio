@@ -1,8 +1,17 @@
 name: Generate Fractured Dimension Video
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "stories/active/story.json"
   workflow_dispatch:
     inputs:
+      story_path:
+        description: Repository path to the story JSON manifest
+        required: true
+        type: string
+        default: stories/active/story.json
       overwrite_images:
         description: Regenerate images even if they already exist
         required: false
@@ -71,8 +80,18 @@ jobs:
             python -c "from kokoro import KPipeline; print('Kokoro import OK')"
           fi
 
-      - name: Create example story
-        run: fractured-dimension create-example --output work/example
+      - name: Select story manifest
+        env:
+          STORY_PATH_INPUT: ${{ inputs.story_path }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            STORY_PATH="$STORY_PATH_INPUT"
+          else
+            STORY_PATH="stories/active/story.json"
+          fi
+          test -f "$STORY_PATH" || (echo "::error::Story manifest not found: $STORY_PATH" && exit 1)
+          echo "STORY_PATH=$STORY_PATH" >> "$GITHUB_ENV"
 
       - name: Generate story images
         env:
@@ -82,13 +101,13 @@ jobs:
           HORDE_API_KEY: ${{ secrets.HORDE_API_KEY }}
         run: |
           if [ "${{ inputs.overwrite_images }}" = "true" ]; then
-            fractured-dimension generate work/example/story.json --overwrite
+            fractured-dimension generate "$STORY_PATH" --overwrite
           else
-            fractured-dimension generate work/example/story.json
+            fractured-dimension generate "$STORY_PATH"
           fi
 
       - name: Render vertical video with narration
-        run: fractured-dimension render work/example/story.json --output output/fractured-dimension-short.mp4
+        run: fractured-dimension render "$STORY_PATH" --output output/fractured-dimension-short.mp4
 
       - name: Upload generated video
         uses: actions/upload-artifact@v4
@@ -102,6 +121,6 @@ jobs:
         with:
           name: fractured-dimension-assets
           path: |
-            work/example/images/
-            work/example/generation-report.json
+            stories/active/images/
+            stories/active/generation-report.json
           if-no-files-found: error
