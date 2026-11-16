@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .voice import generate_voiceover
+from .procedural import render_procedural_story
 
 # Camera anchors describe the visible crop: x=0 is left, x=1 is right;
 # y=0 is top, y=1 is bottom. Zoom and crop position move together.
@@ -141,6 +142,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 
 def render_story(story: dict[str, Any], output: str | Path) -> Path:
+    if story.get("render_mode") == "procedural":
+        return render_procedural_story(story, output)
     if shutil.which("ffmpeg") is None:
         raise RuntimeError("FFmpeg was not found. Install FFmpeg and make sure it is on PATH.")
     project_dir = Path(story["_project_dir"])
