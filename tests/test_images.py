@@ -87,6 +87,8 @@ def test_generate_image_falls_back_to_second_model(tmp_path, monkeypatch):
 
 
 def test_story_generation_injects_character_and_style_locks(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "test-account")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "test-token")
     import fractured_dimension.images as images
 
     captured = []
@@ -163,6 +165,8 @@ def test_flux2_request_sends_multipart_reference_image(tmp_path, monkeypatch):
 
 
 def test_story_generation_creates_character_sheet_and_reuses_it(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "test-account")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "test-token")
     import fractured_dimension.images as images
 
     calls = []
@@ -203,11 +207,14 @@ def test_story_generation_creates_character_sheet_and_reuses_it(tmp_path, monkey
 
 
 def test_character_shots_never_fall_back_to_text_only_models(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "test-account")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "test-token")
     import fractured_dimension.images as images
 
     monkeypatch.delenv("CLOUDFLARE_MODEL", raising=False)
     monkeypatch.delenv("CLOUDFLARE_REFERENCE_MODEL", raising=False)
     monkeypatch.delenv("CLOUDFLARE_FALLBACK_MODELS", raising=False)
+    monkeypatch.setattr(images, "_free_provider_fallback", lambda *args: (_ for _ in ()).throw(RuntimeError("public fallback unavailable")))
     calls = []
 
     def fake_request(prompt, destination, model, reference_images=None):
@@ -291,8 +298,3 @@ def test_character_reference_falls_back_to_free_text_provider_without_claiming_r
     assert provider == "pollinations-flux"
     assert model == "pollinations-flux"
 
-    )
-    with pytest.raises(RuntimeError, match="Add REPLICATE_API_TOKEN"):
-        images._request_image_with_fallback(
-            "A scene", tmp_path / "shot.png", images.DEFAULT_MODEL
-        )
