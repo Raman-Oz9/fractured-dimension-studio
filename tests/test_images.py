@@ -87,6 +87,8 @@ def test_generate_image_falls_back_to_second_model(tmp_path, monkeypatch):
 
 
 def test_story_generation_injects_character_and_style_locks(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "test-account")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "test-token")
     import fractured_dimension.images as images
 
     captured = []
@@ -163,6 +165,8 @@ def test_flux2_request_sends_multipart_reference_image(tmp_path, monkeypatch):
 
 
 def test_story_generation_creates_character_sheet_and_reuses_it(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "test-account")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "test-token")
     import fractured_dimension.images as images
 
     calls = []
@@ -203,11 +207,14 @@ def test_story_generation_creates_character_sheet_and_reuses_it(tmp_path, monkey
 
 
 def test_character_shots_never_fall_back_to_text_only_models(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "test-account")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "test-token")
     import fractured_dimension.images as images
 
     monkeypatch.delenv("CLOUDFLARE_MODEL", raising=False)
     monkeypatch.delenv("CLOUDFLARE_REFERENCE_MODEL", raising=False)
     monkeypatch.delenv("CLOUDFLARE_FALLBACK_MODELS", raising=False)
+    monkeypatch.setattr(images, "_free_provider_fallback", lambda *args: (_ for _ in ()).throw(RuntimeError("public fallback unavailable")))
     calls = []
 
     def fake_request(prompt, destination, model, reference_images=None):
@@ -249,50 +256,132 @@ def test_character_shots_never_fall_back_to_text_only_models(tmp_path, monkeypat
     assert report[1]["reference_images_used"] == "true"
 
 
-def test_cloudflare_quota_falls_back_to_replicate_with_character_reference(tmp_path, monkeypatch):
+def test_free_provider_fallback_is_used_without_cloudflare(tmp_path, monkeypatch):
     import fractured_dimension.images as images
 
-    reference = tmp_path / "mara.png"
-    reference.write_bytes(b"reference")
-    monkeypatch.setenv("REPLICATE_API_TOKEN", "replicate-test-token")
-    monkeypatch.setattr(
-        images, "_request_image",
-        lambda *args, **kwargs: (_ for _ in ()).throw(
-            RuntimeError("Cloudflare image generation failed (429): daily quota exhausted")
-        ),
-    )
+    monkeypatch.delenv("CLOUDFLARE_ACCOUNT_ID", raising=False)
+    monkeypatch.delenv("CLOUDFLARE_API_TOKEN", raising=False)
     captured = {}
 
-    def fake_replicate(prompt, destination, references=None):
+    def fake_free(prompt, destination):
         captured["prompt"] = prompt
-        captured["references"] = references
         destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_bytes(b"replicate-image")
-        return destination
+        destination.write_bytes(b"free-image")
+        return destination, "pollinations-flux", "pollinations-flux"
 
-    monkeypatch.setattr(images, "_replicate_request", fake_replicate)
+    monkeypatch.setattr(images, "_free_provider_fallback", fake_free)
     target, provider, model = images._request_image_with_fallback(
-        "Mara in a rainy city", tmp_path / "shot.png",
-        images.MODEL_IDS["flux-2-klein"], [reference]
+        "A cinematic scene", tmp_path / "shot.png", images.DEFAULT_MODEL
     )
+    assert target.read_bytes() == b"free-image"
+    assert provider == "pollinations-flux"
+    assert model == "pollinations-flux"
+    assert captured["prompt"] == "A cinematic scene"
 
-    assert target.read_bytes() == b"replicate-image"
-    assert provider == "replicate"
-    assert model == "black-forest-labs/flux-kontext-pro"
-    assert captured["references"] == [reference]
 
-
-def test_cloudflare_quota_without_replicate_secret_fails_clearly(tmp_path, monkeypatch):
+def test_character_reference_falls_back_to_free_text_provider_without_claiming_reference(tmp_path, monkeypatch):
     import fractured_dimension.images as images
 
-    monkeypatch.delenv("REPLICATE_API_TOKEN", raising=False)
+    reference = tmp_path / "character.png"
+    reference.write_bytes(b"reference")
+    monkeypatch.delenv("CLOUDFLARE_ACCOUNT_ID", raising=False)
+    monkeypatch.delenv("CLOUDFLARE_API_TOKEN", raising=False)
     monkeypatch.setattr(
-        images, "_request_image",
-        lambda *args, **kwargs: (_ for _ in ()).throw(
-            RuntimeError("Cloudflare image generation failed (429): quota exhausted")
-        ),
+        images, "_free_provider_fallback",
+        lambda prompt, destination: (destination, "pollinations-flux", "pollinations-flux")
     )
-    with pytest.raises(RuntimeError, match="Add REPLICATE_API_TOKEN"):
-        images._request_image_with_fallback(
-            "A scene", tmp_path / "shot.png", images.DEFAULT_MODEL
-        )
+    destination = tmp_path / "shot.png"
+    destination.write_bytes(b"generated")
+    _, provider, model = images._request_image_with_fallback(
+        "Mara in a rainy city", destination, images.DEFAULT_REFERENCE_MODEL, [reference]
+    )
+    assert provider == "pollinations-flux"
+    assert model == "pollinations-flux"
+
+
+def test_free_provider_fallback_order_ends_with_pollinations(monkeypatch, tmp_path):
+    import fractured_dimension.images as images
+
+    calls = []
+
+    def provider(name):
+        def generate(prompt, destination):
+            calls.append(name)
+            if name != "pollinations-flux":
+                raise RuntimeError(f"{name} unavailable")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(b"last-resort-image")
+            return destination, name
+        return generate
+
+    monkeypatch.setattr(images, "_ovh_image", provider("ovh-stable-diffusion-xl"))
+    monkeypatch.setattr(images, "_horde_image", provider("ai-horde"))
+    monkeypatch.setattr(images, "_pollinations_image", provider("pollinations-flux"))
+
+    target, provider_name, model = images._free_provider_fallback(
+        "A cinematic scene", tmp_path / "shot.png"
+    )
+
+    assert target.read_bytes() == b"last-resort-image"
+    assert provider_name == "pollinations-flux"
+    assert model == "pollinations-flux"
+    assert calls == [
+        "ovh-stable-diffusion-xl",
+        "ai-horde",
+        "pollinations-flux",
+    ]
+
+
+def test_cloudflare_is_primary_before_free_backups(tmp_path, monkeypatch):
+    import fractured_dimension.images as images
+
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "account")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "token")
+    calls = []
+
+    def fake_cloudflare(prompt, destination, model, reference_images=None):
+        calls.append("cloudflare")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(b"cloudflare-image")
+        return destination
+
+    def unexpected_backup(prompt, destination):
+        calls.append("backup")
+        raise AssertionError("Backup should not run when Cloudflare succeeds")
+
+    monkeypatch.setattr(images, "_request_image", fake_cloudflare)
+    monkeypatch.setattr(images, "_free_provider_fallback", unexpected_backup)
+    target, provider, model = images._request_image_with_fallback(
+        "A cinematic scene", tmp_path / "shot.png", images.DEFAULT_MODEL
+    )
+    assert target.read_bytes() == b"cloudflare-image"
+    assert provider == "cloudflare"
+    assert calls == ["cloudflare"]
+
+
+def test_cloudflare_quota_failure_uses_free_backup(tmp_path, monkeypatch):
+    import fractured_dimension.images as images
+
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "account")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "token")
+    calls = []
+
+    def exhausted(*args, **kwargs):
+        calls.append("cloudflare")
+        raise RuntimeError("daily quota exceeded")
+
+    def backup(prompt, destination):
+        calls.append("backup")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(b"backup-image")
+        return destination, "pollinations-flux", "pollinations-flux"
+
+    monkeypatch.setattr(images, "_request_image", exhausted)
+    monkeypatch.setattr(images, "_free_provider_fallback", backup)
+    target, provider, _ = images._request_image_with_fallback(
+        "A cinematic scene", tmp_path / "shot.png", images.DEFAULT_MODEL
+    )
+    assert target.read_bytes() == b"backup-image"
+    assert provider == "pollinations-flux"
+    assert calls == ["cloudflare", "backup"]
+
