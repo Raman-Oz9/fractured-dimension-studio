@@ -5,8 +5,8 @@ An automated YouTube Shorts production system built around cinematic graphic-nov
 ## Current pipeline
 
 1. Create a story project with a reusable character bible, series-wide visual style lock, and narration script.
-2. Generate each shot through Cloudflare Workers AI, with an independent Replicate fallback when Cloudflare returns an authentication or quota error.
-3. Automatically try configured Cloudflare model fallbacks for model errors. On Cloudflare authentication or quota errors, switch to Replicate when `REPLICATE_API_TOKEN` is configured.
+2. Generate each shot through Cloudflare Workers AI as the primary provider.
+3. If Cloudflare is unavailable or its quota is exhausted, use free backups in this order: OVHcloud SDXL, AI Horde, then Pollinations FLUX as the last resort.
 4. Add stable character descriptions to every shot prompt that references that character.
 5. Record which model generated each image in `generation-report.json`.
 6. Render stills into a vertical MP4 with continuous, eased, multi-keyframe camera paths. A still illustration is treated as a navigable cinematic space, not a slideshow.
@@ -31,7 +31,7 @@ Create a starter project:
 fractured-dimension create-example --output work/example
 ```
 
-Set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` for the primary image provider. For independent automatic fallback, add `REPLICATE_API_TOKEN` as a GitHub Actions secret. Replicate uses FLUX.1 Schnell for text-to-image generation and FLUX.1 Kontext Pro when a character reference is supplied; the latter is currently listed at $0.04 per output image. Replicate is usage-billed, not an unlimited free service. Without the Replicate secret, Cloudflare quota/authentication errors stop image generation with a clear setup message. The GitHub Actions workflow installs Kokoro and runs it directly on the hosted runner; no local computer or external speech server is required. Choose `am_adam` or `bm_george` in the workflow dispatch form. For optional remote VoiceStudio mode, set `VOICE_BACKEND=voicestudio` and add `VOICESTUDIO_BASE_URL` (including `/v1`) and `VOICESTUDIO_API_KEY` as Actions secrets. VoiceStudio's documented API still requires a reachable server; its public Cloud API is not generally released. Never commit API keys.
+Set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` for the primary image provider. The GitHub Actions workflow automatically uses the free public backups if Cloudflare is unavailable; optional `OVH_AI_TOKEN` and `HORDE_API_KEY` secrets can improve access to those providers. No Replicate token or paid inference account is used by this pipeline. The GitHub Actions workflow installs Kokoro and runs it directly on the hosted runner; no local computer or external speech server is required. Choose `am_adam` or `bm_george` in the workflow dispatch form. For optional remote VoiceStudio mode, set `VOICE_BACKEND=voicestudio` and add `VOICESTUDIO_BASE_URL` (including `/v1`) and `VOICESTUDIO_API_KEY` as Actions secrets. VoiceStudio's documented API still requires a reachable server; its public Cloud API is not generally released. Never commit API keys.
 
 The GitHub Actions workflow uses Kokoro directly on the runner by default, with `am_adam` or `bm_george` selectable. Piper is no longer part of the default narration path.
 
@@ -117,7 +117,7 @@ pytest
 - [x] Aspect-ratio-safe still-image rendering with continuous keyframed camera choreography.
 - [x] Cloudflare Workers AI image-generation integration.
 - [x] Multi-model fallback routing (FLUX.1 Schnell, SDXL-Lightning, SDXL Base).
-- [x] Independent Replicate fallback for Cloudflare quota/authentication failures, including reference-conditioned character shots.
+- [x] Free provider fallback chain: OVHcloud SDXL, AI Horde, then Pollinations FLUX as last resort.
 - [x] Character bible and prompt-level identity/style locks.
 - [x] Per-shot model generation report.
 - [x] FLUX.2 multi-reference image conditioning with reference-safe model fallback for stronger character consistency.
