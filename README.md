@@ -42,6 +42,12 @@ fractured-dimension generate work/example/story.json
 fractured-dimension render work/example/story.json --output output/short.mp4
 ```
 
+## Free Google Colab GPU route
+
+A separate notebook is available at [`notebooks/Fractured-Dimension-Free-GPU.ipynb`](notebooks/Fractured-Dimension-Free-GPU.ipynb). Open it in Google Colab, attach a GPU runtime if one is offered, and run its cells in order. It clones this repository, creates the example story, generates character reference sheets and scene images locally with open-source SDXL + IP-Adapter using the Colab GPU, then uses the existing camera-path renderer, Kokoro narration, and FFmpeg to produce an MP4.
+
+This route does not call Cloudflare Workers AI or Replicate and does not require their API keys. It is a separate notebook route; it does not change the existing GitHub Actions workflow. The first run downloads large model weights and may take time. Free Colab GPU availability, session duration, and quotas are controlled by Google and are not guaranteed or unlimited. If no GPU is assigned, the notebook stops with an explanatory error. IP-Adapter improves reference guidance but cannot guarantee identical character faces across every frame.
+
 ## Cinematic camera director
 
 **Primary rule: never render an illustration as a frozen slide with one mechanical zoom.** Every shot gets a continuous camera path with smooth ease-in/ease-out interpolation. The camera may travel through several framings during one still image:
