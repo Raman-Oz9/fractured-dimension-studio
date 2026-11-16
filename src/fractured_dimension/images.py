@@ -660,7 +660,7 @@ def generate_story_images(story: dict, *, overwrite: bool = False) -> list[Path]
             "provider": selected_provider,
             "model": selected_model,
             "reference_images_used": str(
-                bool(references and selected_model in REFERENCE_MODELS)
+                bool(references and selected_provider == "cloudflare" and selected_model in REFERENCE_MODELS)
             ).lower(),
         })
         print(f"Shot {index}: generated with {selected_model}")
