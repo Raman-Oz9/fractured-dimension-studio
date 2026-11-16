@@ -299,6 +299,39 @@ def test_character_reference_falls_back_to_free_text_provider_without_claiming_r
     assert model == "pollinations-flux"
 
 
+def test_free_provider_fallback_order_ends_with_pollinations(monkeypatch, tmp_path):
+    import fractured_dimension.images as images
+
+    calls = []
+
+    def provider(name):
+        def generate(prompt, destination):
+            calls.append(name)
+            if name != "pollinations-flux":
+                raise RuntimeError(f"{name} unavailable")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(b"last-resort-image")
+            return destination, name
+        return generate
+
+    monkeypatch.setattr(images, "_ovh_image", provider("ovh-stable-diffusion-xl"))
+    monkeypatch.setattr(images, "_horde_image", provider("ai-horde"))
+    monkeypatch.setattr(images, "_pollinations_image", provider("pollinations-flux"))
+
+    target, provider_name, model = images._free_provider_fallback(
+        "A cinematic scene", tmp_path / "shot.png"
+    )
+
+    assert target.read_bytes() == b"last-resort-image"
+    assert provider_name == "pollinations-flux"
+    assert model == "pollinations-flux"
+    assert calls == [
+        "ovh-stable-diffusion-xl",
+        "ai-horde",
+        "pollinations-flux",
+    ]
+
+
 def test_cloudflare_is_primary_before_free_backups(tmp_path, monkeypatch):
     import fractured_dimension.images as images
 
