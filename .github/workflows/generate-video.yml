@@ -96,14 +96,15 @@ jobs:
           echo "STORY_RENDER_MODE=$RENDER_MODE" >> "$GITHUB_ENV"
 
       - name: Generate story images
-        if: ${{ env.STORY_RENDER_MODE != 'procedural' }}
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           OVH_AI_TOKEN: ${{ secrets.OVH_AI_TOKEN }}
           HORDE_API_KEY: ${{ secrets.HORDE_API_KEY }}
         run: |
-          if [ "${{ inputs.overwrite_images }}" = "true" ]; then
+          if [ "$STORY_RENDER_MODE" = "procedural" ]; then
+            echo "Procedural renderer selected; skipping external image generation."
+          elif [ "${{ inputs.overwrite_images }}" = "true" ]; then
             fractured-dimension generate "$STORY_PATH" --overwrite
           else
             fractured-dimension generate "$STORY_PATH"
