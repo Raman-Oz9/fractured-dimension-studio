@@ -121,7 +121,7 @@ def render_procedural_story(story: dict, output: str|Path)->Path:
     duration=sum(float(s["duration"]) for s in story["shots"])
     fps=int(story.get("format",{}).get("fps",30)); total=round(duration*fps)
     silent=out.with_name("."+out.stem+"-silent.mp4")
-    cmd=["ffmpeg","-y","-f","rawvideo","-pix_fmt","rgb24","-s",f"{W}x{H}","-r",str(fps),"-i","-","-an","-c:v","libx264","-preset","veryfast","-crf","18","-pix_fmt","yuv420p",str(silent)]
+    cmd=["ffmpeg","-y","-f","rawvideo","-pix_fmt","rgb24","-s","1080x1920","-r",str(fps),"-i","-","-an","-c:v","libx264","-preset","veryfast","-crf","18","-pix_fmt","yuv420p",str(silent)]
     p=subprocess.Popen(cmd,stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     try:
         for i in range(total):
