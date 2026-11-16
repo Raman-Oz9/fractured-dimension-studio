@@ -295,9 +295,9 @@ def _free_provider_fallback(
 ) -> tuple[Path, str, str]:
     failures = []
     for provider, generate in (
-        ("pollinations-flux", _pollinations_image),
         ("ovh-stable-diffusion-xl", _ovh_image),
         ("ai-horde", _horde_image),
+        ("pollinations-flux", _pollinations_image),
     ):
         try:
             path, actual_provider = generate(prompt, destination)
