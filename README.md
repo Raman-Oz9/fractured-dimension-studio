@@ -48,12 +48,6 @@ A separate notebook is available at [`notebooks/Fractured-Dimension-Free-GPU.ipy
 
 This route does not call Cloudflare Workers AI or Replicate and does not require their API keys. It is a separate notebook route; it does not change the existing GitHub Actions workflow. The first run downloads large model weights and may take time. Free Colab GPU availability, session duration, and quotas are controlled by Google and are not guaranteed or unlimited. If no GPU is assigned, the notebook stops with an explanatory error. IP-Adapter improves reference guidance but cannot guarantee identical character faces across every frame.
 
-## Free Kaggle GPU route
-
-A Kaggle-compatible notebook is available at [`notebooks/Fractured-Dimension-Kaggle-Free-GPU.ipynb`](notebooks/Fractured-Dimension-Kaggle-Free-GPU.ipynb). Import the notebook into Kaggle, enable Internet, select an available GPU accelerator, and run the cells in order. It generates character references and scene images locally with open-source SDXL + IP-Adapter, then uses this repository's camera-path renderer, Kokoro narration, and FFmpeg to produce a vertical MP4 in `/kaggle/working`.
-
-This route does not call Cloudflare Workers AI, Replicate, or any paid image API and needs no image-provider API keys. Kaggle free GPU access is quota-limited, subject to availability, and not guaranteed or unlimited. Internet access is needed for the first download of model weights. IP-Adapter improves reference guidance but cannot guarantee identical character faces across every frame. The notebook has been added to the repository but has not yet been executed end-to-end on Kaggle.
-
 ## Cinematic camera director
 
 **Primary rule: never render an illustration as a frozen slide with one mechanical zoom.** Every shot gets a continuous camera path with smooth ease-in/ease-out interpolation. The camera may travel through several framings during one still image:
@@ -85,17 +79,18 @@ The path must begin at 0 and end at 1. A zoom of 1 is the full fitted image; lar
 
 The default example deliberately uses a wide-to-detail move on its first image and a detail-to-context pull-back on its second image, following the camera direction in the supplied Cinematic Camera & Storytelling Skill.
 
-## Image model routing
+## Free GitHub image generation
 
-The default primary model is Cloudflare Workers AI FLUX.1 Schnell. The default fallback chain is:
+The GitHub Actions workflow installs the renderer automatically and tries public image-generation providers in this order:
 
-1. FLUX.1 Schnell — primary general-purpose image generation.
-2. SDXL-Lightning — fast fallback.
-3. SDXL Base — alternate quality/style fallback.
+1. Pollinations FLUX — no API key required.
+2. OVHcloud Stable Diffusion XL — public endpoint; optional `OVH_AI_TOKEN` can be supplied as a repository secret.
+3. AI Horde — crowdsourced generation; optional `HORDE_API_KEY` can be supplied, otherwise the public anonymous key is used.
+4. Cloudflare Workers AI — optional final fallback only when both Cloudflare secrets are configured.
 
-Override the primary model with `CLOUDFLARE_MODEL`. Override the ordered fallback chain with comma-separated model IDs in `CLOUDFLARE_FALLBACK_MODELS`. Friendly aliases include `flux-schnell`, `sdxl-lightning`, `sdxl-base`, `flux-2-dev`, and `dreamshaper`.
+No Replicate account, paid inference API, or billing setup is required by the default workflow. Public providers are community/free-tier services, so availability, queue times, rate limits, and usage policies can change; generation is not guaranteed to be unlimited or always available. The workflow runs on GitHub's standard CPU runner, not a free GPU.
 
-Cloudflare model availability, beta status, account access, and usage limits vary. The code falls back when a model request fails, but it cannot bypass account quota, missing permissions, or provider safety policies. Generation is not guaranteed to be unlimited or entirely free.
+For character shots, Cloudflare's reference-capable FLUX.2 models can use actual reference images when configured. The public Pollinations, OVH SDXL, and AI Horde fallbacks are text-to-image services: they retain the written character identity/style locks but cannot ingest the character reference image. The generation report records whether actual reference conditioning was used.
 
 ## Character continuity
 
