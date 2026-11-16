@@ -48,6 +48,12 @@ A separate notebook is available at [`notebooks/Fractured-Dimension-Free-GPU.ipy
 
 This route does not call Cloudflare Workers AI or Replicate and does not require their API keys. It is a separate notebook route; it does not change the existing GitHub Actions workflow. The first run downloads large model weights and may take time. Free Colab GPU availability, session duration, and quotas are controlled by Google and are not guaranteed or unlimited. If no GPU is assigned, the notebook stops with an explanatory error. IP-Adapter improves reference guidance but cannot guarantee identical character faces across every frame.
 
+## Free Kaggle GPU route
+
+A Kaggle-compatible notebook is available at [`notebooks/Fractured-Dimension-Kaggle-Free-GPU.ipynb`](notebooks/Fractured-Dimension-Kaggle-Free-GPU.ipynb). Import the notebook into Kaggle, enable Internet, select an available GPU accelerator, and run the cells in order. It generates character references and scene images locally with open-source SDXL + IP-Adapter, then uses this repository's camera-path renderer, Kokoro narration, and FFmpeg to produce a vertical MP4 in `/kaggle/working`.
+
+This route does not call Cloudflare Workers AI, Replicate, or any paid image API and needs no image-provider API keys. Kaggle free GPU access is quota-limited, subject to availability, and not guaranteed or unlimited. Internet access is needed for the first download of model weights. IP-Adapter improves reference guidance but cannot guarantee identical character faces across every frame. The notebook has been added to the repository but has not yet been executed end-to-end on Kaggle.
+
 ## Cinematic camera director
 
 **Primary rule: never render an illustration as a frozen slide with one mechanical zoom.** Every shot gets a continuous camera path with smooth ease-in/ease-out interpolation. The camera may travel through several framings during one still image:
