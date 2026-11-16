@@ -83,10 +83,17 @@ def create_example(output: str | Path) -> Path:
         ),
         "format": {"width": 1080, "height": 1920, "fps": 30},
         "style_lock": (
-            "Fractured Dimension retro-cinematic graphic novel: bold expressive ink "
-            "outlines, subtle 35mm film grain, fine halftone print shading, tactile "
-            "aged-paper and screen-print texture, slightly faded vintage colour palette "
-            "with restrained teal, rust, ochre and dusty rose accents, dimensional "
+            "Fractured Dimension signature retro print-comic aesthetic, unmistakably "
+            "hand-illustrated rather than clean digital concept art: expressive heavy "
+            "ink contours, imperfect hand-drawn linework, visible fine-to-medium 35mm "
+            "film grain across the entire image, dense vintage halftone dot shading in "
+            "midtones and shadows, subtle paper fibres, worn screen-print texture, "
+            "slight ink misregistration and softly distressed edges. Use a restrained "
+            "1970s-1980s editorial colour grade: faded teal, tobacco brown, rust, "
+            "ochre, muted cream and dusty rose; warm aged-paper undertones, rich but "
+            "not neon, with cinematic chiaroscuro and readable faces. Avoid glossy "
+            "3D rendering, photorealism, sterile vector art, smooth plastic gradients, "
+            "over-sharp digital surfaces and excessive clean cyan. "
             "fractured geometry, cinematic lighting with readable midtones and clear "
             "facial expressions. Keep grain fine and controlled, never blur the subject, "
             "never obscure facial details, and avoid excessive noise or crushed blacks. "
