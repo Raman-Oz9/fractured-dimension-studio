@@ -92,8 +92,11 @@ jobs:
           fi
           test -f "$STORY_PATH" || (echo "::error::Story manifest not found: $STORY_PATH" && exit 1)
           echo "STORY_PATH=$STORY_PATH" >> "$GITHUB_ENV"
+          RENDER_MODE=$(python -c "import json; print(json.load(open('$STORY_PATH')).get('render_mode', 'images'))")
+          echo "STORY_RENDER_MODE=$RENDER_MODE" >> "$GITHUB_ENV"
 
       - name: Generate story images
+        if: ${{ env.STORY_RENDER_MODE != 'procedural' }}
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -123,4 +126,5 @@ jobs:
           path: |
             stories/active/images/
             stories/active/generation-report.json
-          if-no-files-found: error
+            stories/active/story.json
+          if-no-files-found: ignore
