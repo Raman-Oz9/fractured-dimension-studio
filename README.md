@@ -83,9 +83,9 @@ The default example deliberately uses a wide-to-detail move on its first image a
 
 The GitHub Actions workflow installs the renderer automatically and uses Cloudflare Workers AI as the primary image-generation provider whenever both `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` are configured. If Cloudflare is unavailable or its daily quota is exhausted, it automatically falls back in this order:
 
-1. Pollinations FLUX — no API key required.
-2. OVHcloud Stable Diffusion XL — public endpoint; optional `OVH_AI_TOKEN` can be supplied as a repository secret.
-3. AI Horde — crowdsourced generation; optional `HORDE_API_KEY` can be supplied, otherwise the public anonymous key is used.
+1. OVHcloud Stable Diffusion XL — public endpoint; optional `OVH_AI_TOKEN` can be supplied as a repository secret.
+2. AI Horde — crowdsourced generation; optional `HORDE_API_KEY` can be supplied, otherwise the public anonymous key is used.
+3. Pollinations FLUX — last-resort public endpoint; no API key required.
 
 No Replicate account, paid inference API, or billing setup is required by the default workflow. Public providers are community/free-tier services, so availability, queue times, rate limits, and usage policies can change; generation is not guaranteed to be unlimited or always available. The workflow runs on GitHub's standard CPU runner, not a free GPU.
 
