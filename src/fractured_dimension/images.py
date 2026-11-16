@@ -314,39 +314,39 @@ def _request_image_with_fallback(
     model: str,
     reference_images: list[Path] | None = None,
 ) -> tuple[Path, str, str]:
-    """Use reference-capable Cloudflare when configured; otherwise free public providers.
+    """Prefer Cloudflare first; use public free providers only as automatic backups.
 
-    Public fallback services are text-to-image only. Character identity prompts are
-    retained, but actual reference-image conditioning is unavailable on those services.
+    Cloudflare quota/rate-limit failures fall through to public providers. The public
+    providers are text-to-image only and cannot condition on reference image files.
     """
     has_cloudflare = bool(
         os.getenv("CLOUDFLARE_ACCOUNT_ID") and os.getenv("CLOUDFLARE_API_TOKEN")
     )
 
-    # For character shots, try the reference-capable provider first so real image
-    # conditioning is preserved whenever the user has configured it.
-    if reference_images and has_cloudflare:
+    if has_cloudflare:
         try:
             result = _request_image(prompt, destination, model, reference_images)
             return result, "cloudflare", model
         except RuntimeError as exc:
-            print(f"Cloudflare reference generation failed; trying public free text-to-image providers: {exc}")
+            print(
+                "Cloudflare image generation unavailable (possibly daily quota); "
+                f"trying free backup providers: {exc}"
+            )
 
     try:
         return _free_provider_fallback(prompt, destination)
-    except RuntimeError as free_error:
-        if has_cloudflare and not reference_images:
-            try:
-                result = _request_image(prompt, destination, model)
-                return result, "cloudflare", model
-            except RuntimeError as cf_error:
-                raise RuntimeError(f"{free_error}\nCloudflare fallback also failed: {cf_error}") from cf_error
-        if reference_images and not has_cloudflare:
+    except RuntimeError as backup_error:
+        if not has_cloudflare:
             raise RuntimeError(
-                f"{free_error}\nNo reference-image provider is configured. Public free fallbacks "
-                "use the written character identity prompt, not the actual reference image."
-            ) from free_error
-        raise
+                f"{backup_error}\nCloudflare credentials are not configured. "
+                "Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN to enable "
+                "the preferred default image provider."
+            ) from backup_error
+        raise RuntimeError(
+            f"Cloudflare and all free backup image providers failed. "
+            f"Backups: {backup_error}"
+        ) from backup_error
+
 
 
 def _character_profile(story: dict, character_id: str) -> dict:
