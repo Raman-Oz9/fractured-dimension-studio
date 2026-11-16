@@ -91,7 +91,7 @@ def frame_at(t):
     sx=190+180*ease(10,16,t)-15*ease(15,20,t)
     spotlight=.15+.85*ease(13,19,t)
     d.ellipse((sx-110*spotlight,390,sx+110*spotlight,680),outline=YELLOW,width=3)
-    if t<10: boro(im,bx,665,t); shadow(im,bx+10,666,t,s="1.25")
+    if t<10: boro(im,bx,665,t); shadow(im,bx+10,666,t,s=1.25)
     elif t<15: boro(im,bx,665,t); shadow(im,bx+10+(sx-bx-10)*ease(10,15,t),665,t)
     elif t<20: boro(im,bx,665,t,"kneel",1.15); shadow(im,sx,655,t)
     elif t<25: boro(im,bx,665,t,"trip"); shadow(im,sx,655,t)
@@ -103,6 +103,11 @@ def frame_at(t):
         d.rounded_rectangle((28,55,510,155),radius=8,fill=INK,outline=YELLOW,width=3)
         d.text((48,70),"THE SHADOW",font=font(36),fill=PAPER)
         d.text((48,112),"THAT QUIT",font=font(30),fill=YELLOW)
+    captions=["A MAGician. A MIDNIGHT MARKET.","HIS SHADOW DID ALL THE WORK.","TONIGHT, IT WALKED AWAY.","THE SHADOW STOLE THE SHOW.","BORO TRIED TO TAKE IT BACK.","THE SHADOW HAD ONE CONDITION.","ASSISTANT. NOT THE STAR.","THE OVATION WASN'T FOR BORO."]
+    ci=min(7,int(t//5))
+    d.rounded_rectangle((26,855,514,925),radius=8,fill=INK,outline=YELLOW,width=2)
+    cap=captions[ci]
+    d.text((270,890),cap,font=font(19),fill=PAPER,anchor="mm")
     d.rectangle((12,12,W-13,H-13),outline=PAPER,width=3)
     rng=random.Random(int(t*30)+1907)
     for _ in range(900):
@@ -117,12 +122,21 @@ def render_procedural_story(story: dict, output: str|Path)->Path:
     fps=int(story.get("format",{}).get("fps",30)); total=round(duration*fps)
     silent=out.with_name("."+out.stem+"-silent.mp4")
     cmd=["ffmpeg","-y","-f","rawvideo","-pix_fmt","rgb24","-s",f"{W}x{H}","-r",str(fps),"-i","-","-an","-c:v","libx264","-preset","veryfast","-crf","18","-pix_fmt","yuv420p",str(silent)]
-    p=subprocess.Popen(cmd,stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
+    p=subprocess.Popen(cmd,stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     try:
         for i in range(total):
-            p.stdin.write(frame_at(i/fps).resize((1080,1920),Image.Resampling.LANCZOS).tobytes())
-        p.stdin.close(); err=p.stderr.read().decode(errors="replace"); code=p.wait()
-        if code: raise RuntimeError("FFmpeg render failed: "+err[-2000:])
+            t=i/fps
+            im=frame_at(t)
+            # Time-driven camera choreography: push, lateral reveal, then settle.
+            z=1.0+0.12*ease(0,5,t)+0.08*ease(15,20,t)-0.10*ease(30,40,t)
+            fx=0.5+0.16*math.sin(t*math.pi/20)
+            fy=0.5-0.05*math.sin(t*math.pi/10)
+            cw=int(W/z); ch=int(H/z)
+            left=max(0,min(W-cw,int(fx*W-cw/2))); top=max(0,min(H-ch,int(fy*H-ch/2)))
+            im=im.crop((left,top,left+cw,top+ch)).resize((1080,1920),Image.Resampling.LANCZOS)
+            p.stdin.write(im.tobytes())
+        p.stdin.close(); code=p.wait()
+        if code: raise RuntimeError("FFmpeg procedural render failed; see runner logs.")
     except Exception:
         if p.poll() is None: p.kill(); p.wait()
         raise
