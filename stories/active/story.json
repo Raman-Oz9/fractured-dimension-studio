@@ -1,12 +1,12 @@
 {
   "title": "The Shadow That Quit",
-  "narration": "At two thirteen in the morning, Boro's shadow walked out of his body. For years, the little street magician had taken the applause. His shadow had done all the work. Tonight, it had enough. It stepped into the spotlight and performed tricks Boro could only dream of. The crowd went wild. Boro tried to steal the show, tripped over his own coat, and landed at his shadow's feet. The shadow pointed to a broom. You're the assistant now. Boro finally got a standing ovation. Unfortunately, it was for the shadow.",
+  "narration": "At two thirteen in the morning, Boro's shadow stepped away from his boots. For years, the little street magician had taken the applause, while his shadow did every difficult trick. It caught falling coins, balanced lanterns, and made impossible birds dance across the walls. Boro bowed after every performance. The shadow never got a single thank-you. Tonight, under the Midnight Market spotlight, it finally refused. It slipped free, strode onto the stage, and performed a dazzling show of its own. The crowd roared. Boro rushed forward to reclaim the attention, tangled his oversized coat, and landed flat on the cobbles. His shadow calmly pointed at a broom. The message was clear: the magician was now the assistant. Boro picked it up. The crowd gave a standing ovation—but every cheer was for the shadow.",
   "format": {
     "width": 1080,
     "height": 1920,
     "fps": 30
   },
-  "style_lock": "Fractured Dimension shared universe: graphic-novel illustration with dimensional 3D depth, bold expressive ink outlines, textured mixed media, fractured geometric compositions, layered environments, cinematic neon lighting, controlled palette of obsidian black, electric blue, fracture red, cosmic violet, signal yellow and paper white. Visible fine 35mm grain, tactile paper fibres, halftone print shading, rich readable midtones, dramatic chiaroscuro. Distinct foreground, middle-ground and background planes. Hand-illustrated, not photorealistic, not glossy plastic 3D, no lettering, no watermark. Compose for vertical 9:16 with enough surrounding detail for deliberate cinematic camera travel.",
+  "style_lock": "Fractured Dimension signature flat procedural illustration: hand-drawn 2D graphic shapes and bold ink outlines, six-colour palette only (obsidian black, electric blue, fracture red, cosmic violet, signal yellow, paper white), grainy retro print texture and restrained halftone, visible paper fibres, strong silhouettes, expressive readable faces, layered geometric environments, imperfect screen-print registration. Characters are built from consistent simple primitives and remain on-model. Animate bodies and limbs through clear poses, contact-driven interactions and anticipation; every frame is a deterministic pure function of time. Camera moves are purposeful and composed around the action. Absolutely no photorealism, glossy 3D, plastic CGI, painterly 3D character rendering, gradients outside palette, or AI-generated concept-art look.",
   "character_bible": {
     "BORO": {
       "visual_identity": "Boro is a short, slightly hunched adult street magician with narrow shoulders, long thin arms, a pointed nose, deep-set expressive eyes, a thin curled moustache and one visible gold tooth. He wears the same oversized angular black-and-cosmic-violet patchwork coat, crooked black top hat tied with one fracture-red thread, striped charcoal trousers, mismatched boots and a silver glove on his left hand. Keep his face, proportions, costume and signature details identical in every shot."
@@ -246,5 +246,6 @@
       "image_prompt": "Final punchline close-up: Boro's embarrassed face fills the frame, deep-set eyes and single gold tooth visible in a furious forced grin. In the background his living shadow quietly steals his crooked top hat with one elongated hand. Electric-blue glint, fracture-red edge accents, rich paper grain, comic timing, strong readable expression."
     }
   ],
-  "episode_id": "FD-01"
+  "episode_id": "FD-01",
+  "render_mode": "procedural"
 }
