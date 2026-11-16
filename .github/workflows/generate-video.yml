@@ -42,12 +42,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
-      VOICE_BACKEND: ${{ inputs.voice_backend }}
-      KOKORO_VOICE: ${{ inputs.narrator }}
+      VOICE_BACKEND: ${{ inputs.voice_backend || 'kokoro' }}
+      KOKORO_VOICE: ${{ inputs.narrator || 'am_adam' }}
       KOKORO_SPEED: "0.94"
       VOICESTUDIO_BASE_URL: ${{ secrets.VOICESTUDIO_BASE_URL }}
       VOICESTUDIO_API_KEY: ${{ secrets.VOICESTUDIO_API_KEY }}
-      VOICESTUDIO_VOICE: ${{ inputs.narrator }}
+      VOICESTUDIO_VOICE: ${{ inputs.narrator || 'am_adam' }}
       VOICESTUDIO_MODEL: tts-1
       VOICESTUDIO_SPEED: "0.92"
     steps:
