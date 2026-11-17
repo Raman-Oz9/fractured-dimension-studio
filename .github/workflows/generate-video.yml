@@ -35,7 +35,7 @@ on:
         default: kokoro
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate-and-render:
@@ -129,3 +129,17 @@ jobs:
             stories/active/generation-report.json
             stories/active/story.json
           if-no-files-found: ignore
+
+      - name: Publish preview to branch (review only)
+        if: success()
+        run: |
+          mkdir -p /tmp/preview
+          cp output/fractured-dimension-short.mp4 /tmp/preview/
+          cp -r stories/active/images /tmp/preview/images || true
+          cp stories/active/generation-report.json /tmp/preview/ || true
+          cd /tmp/preview
+          git init -q
+          git checkout -q -b claude-video-preview
+          git add -A
+          git -c user.name=github-actions -c user.email=actions@users.noreply.github.com commit -qm "Preview render"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" claude-video-preview
