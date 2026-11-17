@@ -161,7 +161,29 @@ def test_flux2_request_sends_multipart_reference_image(tmp_path, monkeypatch):
     assert b'name="prompt"' in captured["body"]
     assert b'name="input_image_0"' in captured["body"]
     assert b"reference-0.png" in captured["body"]
+    # Story shots are requested natively at 9:16 instead of square-then-cropped.
+    assert b'name="width"\r\n\r\n768\r\n' in captured["body"]
+    assert b'name="height"\r\n\r\n1344\r\n' in captured["body"]
     assert destination.read_bytes() == b"generated-image"
+
+
+def test_character_sheet_request_keeps_default_size(tmp_path, monkeypatch):
+    import fractured_dimension.images as images
+
+    captured = {}
+
+    def fake_urlopen(request, timeout):
+        captured["body"] = request.data
+        return FakeResponse(b"sheet")
+
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "account")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "token")
+    monkeypatch.setattr(images, "urlopen", fake_urlopen)
+    images._request_image(
+        "Character sheet", tmp_path / "sheet.png", images.MODEL_IDS["flux-2-klein"], []
+    )
+    assert b'name="width"' not in captured["body"]
+    assert b'name="height"' not in captured["body"]
 
 
 def test_story_generation_creates_character_sheet_and_reuses_it(tmp_path, monkeypatch):
