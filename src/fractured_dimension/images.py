@@ -32,6 +32,10 @@ DEFAULT_FALLBACKS = [
     MODEL_IDS["sdxl-lightning"],
     MODEL_IDS["sdxl-base"],
 ]
+# Story shots are generated natively at 9:16 (multiples of 16, inside FLUX.2's
+# 256-1920 range) so the vertical crop never cuts characters or action out of the frame.
+SHOT_WIDTH = 768
+SHOT_HEIGHT = 1344
 REFERENCE_MODELS = {
     MODEL_IDS["flux-2-dev"],
     MODEL_IDS["flux-2-klein"],
@@ -74,7 +78,11 @@ def _reference_model_chain(preferred: str | None = None) -> list[str]:
     return list(dict.fromkeys(model for model in ordered if model in REFERENCE_MODELS))
 
 
-def _multipart_payload(prompt: str, reference_images: list[Path]) -> tuple[bytes, str]:
+def _multipart_payload(
+    prompt: str,
+    reference_images: list[Path],
+    size: tuple[int, int] | None = None,
+) -> tuple[bytes, str]:
     boundary = f"----fractured-dimension-{uuid.uuid4().hex}"
     chunks: list[bytes] = []
 
@@ -90,6 +98,9 @@ def _multipart_payload(prompt: str, reference_images: list[Path]) -> tuple[bytes
         chunks.append(b"\r\n")
 
     field("prompt", prompt.encode("utf-8"))
+    if size:
+        field("width", str(size[0]).encode("ascii"))
+        field("height", str(size[1]).encode("ascii"))
     for index, reference in enumerate(reference_images[:4]):
         if not reference.is_file():
             raise FileNotFoundError(f"Character reference image not found: {reference}")
@@ -128,7 +139,9 @@ def _request_image(
     )
     references = reference_images or []
     if model in REFERENCE_MODELS:
-        payload, content_type = _multipart_payload(prompt, references)
+        # Reference-conditioned requests are story shots: render them in portrait.
+        size = (SHOT_WIDTH, SHOT_HEIGHT) if references else None
+        payload, content_type = _multipart_payload(prompt, references, size)
     else:
         if references:
             print(f"Note: {model} does not accept reference images; using character prompt lock.")
