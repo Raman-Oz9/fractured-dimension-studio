@@ -1,0 +1,73 @@
+[
+  {
+    "shot": "character:BORO",
+    "image": "stories/active/images/character-boro-reference.png",
+    "status": "reference-generated",
+    "provider": "cloudflare",
+    "model": "@cf/black-forest-labs/flux-2-klein-4b"
+  },
+  {
+    "shot": "1",
+    "image": "stories/active/images/shot-01.png",
+    "status": "generated",
+    "provider": "cloudflare",
+    "model": "@cf/black-forest-labs/flux-2-klein-4b",
+    "reference_images_used": "true"
+  },
+  {
+    "shot": "2",
+    "image": "stories/active/images/shot-02.png",
+    "status": "generated",
+    "provider": "cloudflare",
+    "model": "@cf/black-forest-labs/flux-2-klein-4b",
+    "reference_images_used": "true"
+  },
+  {
+    "shot": "3",
+    "image": "stories/active/images/shot-03.png",
+    "status": "generated",
+    "provider": "cloudflare",
+    "model": "@cf/black-forest-labs/flux-2-klein-4b",
+    "reference_images_used": "true"
+  },
+  {
+    "shot": "4",
+    "image": "stories/active/images/shot-04.png",
+    "status": "generated",
+    "provider": "cloudflare",
+    "model": "@cf/black-forest-labs/flux-2-klein-4b",
+    "reference_images_used": "true"
+  },
+  {
+    "shot": "5",
+    "image": "stories/active/images/shot-05.png",
+    "status": "generated",
+    "provider": "cloudflare",
+    "model": "@cf/black-forest-labs/flux-2-dev",
+    "reference_images_used": "true"
+  },
+  {
+    "shot": "6",
+    "image": "stories/active/images/shot-06.png",
+    "status": "generated",
+    "provider": "cloudflare",
+    "model": "@cf/black-forest-labs/flux-2-klein-4b",
+    "reference_images_used": "true"
+  },
+  {
+    "shot": "7",
+    "image": "stories/active/images/shot-07.png",
+    "status": "generated",
+    "provider": "cloudflare",
+    "model": "@cf/black-forest-labs/flux-2-klein-4b",
+    "reference_images_used": "true"
+  },
+  {
+    "shot": "8",
+    "image": "stories/active/images/shot-08.png",
+    "status": "generated",
+    "provider": "cloudflare",
+    "model": "@cf/black-forest-labs/flux-2-dev",
+    "reference_images_used": "true"
+  }
+]
