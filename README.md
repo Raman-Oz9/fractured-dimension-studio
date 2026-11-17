@@ -5,12 +5,12 @@ An automated YouTube Shorts production system built around cinematic graphic-nov
 ## Current pipeline
 
 1. Create a story project with a reusable character bible, series-wide visual style lock, and narration script.
-2. Generate each shot through Cloudflare Workers AI, with an independent Replicate fallback when Cloudflare returns an authentication or quota error.
-3. Automatically try configured Cloudflare model fallbacks for model errors. On Cloudflare authentication or quota errors, switch to Replicate when `REPLICATE_API_TOKEN` is configured.
+2. Generate each shot through Cloudflare Workers AI. Shots that feature a character are conditioned on that character's reference image and only ever use reference-capable models.
+3. For shots without a character reference, automatically try configured Cloudflare model fallbacks and, if Cloudflare is unavailable (missing credentials, quota, content flag), the free public backups in this order: OVHcloud SDXL, AI Horde, Pollinations FLUX. Character shots never fall back to these text-only providers; they fail with a clear error instead of redesigning the character.
 4. Add stable character descriptions to every shot prompt that references that character.
 5. Record which model generated each image in `generation-report.json`.
 6. Render stills into a vertical MP4 with continuous, eased, multi-keyframe camera paths. A still illustration is treated as a navigable cinematic space, not a slideshow.
-7. Generate narration with Kokoro directly on the GitHub Actions runner (default `am_adam`, selectable `bm_george`) and mux the WAV audio into the final MP4. An optional remote VoiceStudio API backend is also supported when a reachable server is configured.
+7. Generate narration with Kokoro directly on the GitHub Actions runner (default `am_adam`, selectable `bm_george`) and mux the WAV audio into the final MP4. Narration is never clipped: if the speech is longer than the planned shot durations, every shot is stretched proportionally (up to 1.5x, otherwise the render stops and asks for a shorter script) and word-timed captions follow the real speech length. An optional remote VoiceStudio API backend is also supported when a reachable server is configured.
 
 ## Requirements
 
@@ -31,7 +31,7 @@ Create a starter project:
 fractured-dimension create-example --output work/example
 ```
 
-Set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` for the primary image provider. For independent automatic fallback, add `REPLICATE_API_TOKEN` as a GitHub Actions secret. Replicate uses FLUX.1 Schnell for text-to-image generation and FLUX.1 Kontext Pro when a character reference is supplied; the latter is currently listed at $0.04 per output image. Replicate is usage-billed, not an unlimited free service. Without the Replicate secret, Cloudflare quota/authentication errors stop image generation with a clear setup message. The GitHub Actions workflow installs Kokoro and runs it directly on the hosted runner; no local computer or external speech server is required. Choose `am_adam` or `bm_george` in the workflow dispatch form. For optional remote VoiceStudio mode, set `VOICE_BACKEND=voicestudio` and add `VOICESTUDIO_BASE_URL` (including `/v1`) and `VOICESTUDIO_API_KEY` as Actions secrets. VoiceStudio's documented API still requires a reachable server; its public Cloud API is not generally released. Never commit API keys.
+Set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` for the primary image provider; they are required for any shot that uses a character reference. The free backups need no key, but `OVH_AI_TOKEN` and `HORDE_API_KEY` (optional GitHub Actions secrets) raise their rate limits and priority. The backups are anonymous public services: availability, queue times and rate limits are outside this project's control, and they cannot use reference images. The GitHub Actions workflow installs Kokoro and runs it directly on the hosted runner; no local computer or external speech server is required. Choose `am_adam` or `bm_george` in the workflow dispatch form. For optional remote VoiceStudio mode, set `VOICE_BACKEND=voicestudio` and add `VOICESTUDIO_BASE_URL` (including `/v1`) and `VOICESTUDIO_API_KEY` as Actions secrets. VoiceStudio's documented API still requires a reachable server; its public Cloud API is not generally released. Never commit API keys.
 
 The GitHub Actions workflow uses Kokoro directly on the runner by default, with `am_adam` or `bm_george` selectable. Piper is no longer part of the default narration path.
 
@@ -46,13 +46,13 @@ fractured-dimension render work/example/story.json --output output/short.mp4
 
 A separate notebook is available at [`notebooks/Fractured-Dimension-Free-GPU.ipynb`](notebooks/Fractured-Dimension-Free-GPU.ipynb). Open it in Google Colab, attach a GPU runtime if one is offered, and run its cells in order. It clones this repository, creates the example story, generates character reference sheets and scene images locally with open-source SDXL + IP-Adapter using the Colab GPU, then uses the existing camera-path renderer, Kokoro narration, and FFmpeg to produce an MP4.
 
-This route does not call Cloudflare Workers AI or Replicate and does not require their API keys. It is a separate notebook route; it does not change the existing GitHub Actions workflow. The first run downloads large model weights and may take time. Free Colab GPU availability, session duration, and quotas are controlled by Google and are not guaranteed or unlimited. If no GPU is assigned, the notebook stops with an explanatory error. IP-Adapter improves reference guidance but cannot guarantee identical character faces across every frame.
+This route does not call Cloudflare Workers AI or any other hosted image provider and does not require their API keys. It is a separate notebook route; it does not change the existing GitHub Actions workflow. The first run downloads large model weights and may take time. Free Colab GPU availability, session duration, and quotas are controlled by Google and are not guaranteed or unlimited. If no GPU is assigned, the notebook stops with an explanatory error. IP-Adapter improves reference guidance but cannot guarantee identical character faces across every frame.
 
 ## Free Kaggle GPU route
 
 A Kaggle-compatible notebook is available at [`notebooks/Fractured-Dimension-Kaggle-Free-GPU.ipynb`](notebooks/Fractured-Dimension-Kaggle-Free-GPU.ipynb). Import the notebook into Kaggle, enable Internet, select an available GPU accelerator, and run the cells in order. It generates character references and scene images locally with open-source SDXL + IP-Adapter, then uses this repository's camera-path renderer, Kokoro narration, and FFmpeg to produce a vertical MP4 in `/kaggle/working`.
 
-This route does not call Cloudflare Workers AI, Replicate, or any paid image API and needs no image-provider API keys. Kaggle free GPU access is quota-limited, subject to availability, and not guaranteed or unlimited. Internet access is needed for the first download of model weights. IP-Adapter improves reference guidance but cannot guarantee identical character faces across every frame. The notebook has been added to the repository but has not yet been executed end-to-end on Kaggle.
+This route does not call Cloudflare Workers AI or any other hosted image API and needs no image-provider API keys. Kaggle free GPU access is quota-limited, subject to availability, and not guaranteed or unlimited. Internet access is needed for the first download of model weights. IP-Adapter improves reference guidance but cannot guarantee identical character faces across every frame. The notebook has been added to the repository but has not yet been executed end-to-end on Kaggle.
 
 ## Cinematic camera director
 
@@ -123,12 +123,13 @@ pytest
 - [x] Aspect-ratio-safe still-image rendering with continuous keyframed camera choreography.
 - [x] Cloudflare Workers AI image-generation integration.
 - [x] Multi-model fallback routing (FLUX.1 Schnell, SDXL-Lightning, SDXL Base).
-- [x] Independent Replicate fallback for Cloudflare quota/authentication failures, including reference-conditioned character shots.
+- [x] Free public backup image providers (OVHcloud SDXL, AI Horde, Pollinations) for shots without a character reference.
 - [x] Character bible and prompt-level identity/style locks.
 - [x] Per-shot model generation report.
 - [x] FLUX.2 multi-reference image conditioning with reference-safe model fallback for stronger character consistency.
 - [x] VoiceStudio.sh API-server narration with selectable voice profiles and MP4 audio muxing.
-- [ ] Word-timed captions and final quality checks.
+- [x] Approximate word-timed captions and narration-fit check (shots stretch to hold the whole narration).
+- [ ] Frame-accurate caption alignment and visual quality checks.
 - [ ] Background music and sound-effect mixing.
 - [ ] Automated visual consistency checks and targeted regeneration.
 - [ ] YouTube OAuth upload and scheduled publishing.

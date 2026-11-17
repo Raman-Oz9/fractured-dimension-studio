@@ -141,6 +141,37 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     path.write_text(header + "\n".join(events) + "\n", encoding="utf-8")
 
 
+FPS = 30
+# Narration is never clipped: when speech is longer than the planned picture, every
+# shot is stretched proportionally (camera paths are normalised, so they simply play
+# slower). Beyond this ratio the script needs shortening rather than a sluggish edit.
+MAX_PICTURE_STRETCH = 1.5
+NARRATION_TAIL_SECONDS = 0.6
+
+
+def _fit_durations_to_narration(
+    durations: list[float], speech_seconds: float
+) -> list[float]:
+    """Return shot durations long enough to hold the whole narration plus a short tail."""
+    picture = sum(durations)
+    needed = speech_seconds + NARRATION_TAIL_SECONDS
+    if needed <= picture:
+        return list(durations)
+    factor = needed / picture
+    if factor > MAX_PICTURE_STRETCH:
+        raise RuntimeError(
+            f"Narration fit QC failed: {speech_seconds:.1f}s of speech needs {needed:.1f}s "
+            f"of picture but the shots total {picture:.1f}s (x{factor:.2f}, limit "
+            f"x{MAX_PICTURE_STRETCH}). Shorten the narration or lengthen the shots."
+        )
+    return [duration * factor for duration in durations]
+
+
+def _wav_seconds(path: Path) -> float:
+    with wave.open(str(path), "rb") as audio:
+        return audio.getnframes() / float(audio.getframerate())
+
+
 def render_story(story: dict[str, Any], output: str | Path) -> Path:
     if story.get("render_mode") == "procedural":
         return render_procedural_story(story, output)
@@ -149,66 +180,73 @@ def render_story(story: dict[str, Any], output: str | Path) -> Path:
     project_dir = Path(story["_project_dir"])
     output_path = Path(output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    stem = output_path.stem
     segment_paths: list[Path] = []
+    concat_file = output_path.parent / f".{stem}-concat.txt"
+    silent_output = output_path.parent / f".{stem}-silent.mp4"
+    voice_path = output_path.parent / f".{stem}-voice.wav"
+    caption_path = output_path.parent / f".{stem}-captions.ass"
 
-    for index, shot in enumerate(story["shots"], start=1):
+    # Fail fast on missing art before spending time on narration.
+    for shot in story["shots"]:
         image_path = project_dir / shot["image"]
         if not image_path.is_file():
             raise FileNotFoundError(f"Missing shot image: {image_path}")
-        frames = max(1, round(float(shot["duration"]) * 30))
-        segment = output_path.parent / f".{output_path.stem}-segment-{index:03d}.mp4"
-        command = [
-            "ffmpeg", "-y", "-loop", "1", "-i", str(image_path),
-            "-vf", _zoom_filter(shot["camera"], frames, shot.get("camera_path")),
-            "-frames:v", str(frames), "-an", "-c:v", "libx264",
-            "-preset", "veryfast", "-crf", "20", str(segment),
-        ]
-        subprocess.run(command, check=True, capture_output=True, text=True)
-        segment_paths.append(segment)
 
-    concat_file = output_path.parent / f".{output_path.stem}-concat.txt"
-    silent_output = output_path.parent / f".{output_path.stem}-silent.mp4"
-    concat_file.write_text(
-        "".join(f"file '{p.resolve().as_posix()}'\n" for p in segment_paths),
-        encoding="utf-8",
-    )
+    durations = [float(shot["duration"]) for shot in story["shots"]]
+    narration = story.get("narration")
+    speech_seconds = 0.0
     try:
+        if narration:
+            generate_voiceover(str(narration), voice_path)
+            speech_seconds = _wav_seconds(voice_path)
+            planned = sum(durations)
+            durations = _fit_durations_to_narration(durations, speech_seconds)
+            print(
+                f"Narration {speech_seconds:.1f}s, planned picture {planned:.1f}s, "
+                f"final picture {sum(durations):.1f}s"
+            )
+
+        frame_counts = [max(1, round(d * FPS)) for d in durations]
+        for index, (shot, frames) in enumerate(zip(story["shots"], frame_counts), start=1):
+            segment = output_path.parent / f".{stem}-segment-{index:03d}.mp4"
+            segment_paths.append(segment)
+            command = [
+                "ffmpeg", "-y", "-loop", "1", "-i", str(project_dir / shot["image"]),
+                "-vf", _zoom_filter(shot["camera"], frames, shot.get("camera_path")),
+                "-frames:v", str(frames), "-an", "-c:v", "libx264",
+                "-preset", "veryfast", "-crf", "20", str(segment),
+            ]
+            subprocess.run(command, check=True, capture_output=True, text=True)
+
+        concat_file.write_text(
+            "".join(f"file '{p.resolve().as_posix()}'\n" for p in segment_paths),
+            encoding="utf-8",
+        )
         subprocess.run(
             ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat_file),
              "-c", "copy", str(silent_output)],
             check=True, capture_output=True, text=True,
         )
-        narration = story.get("narration")
         if narration:
-            voice_path = output_path.parent / f".{output_path.stem}-voice.wav"
-            caption_path = output_path.parent / f".{output_path.stem}-captions.ass"
-            try:
-                generate_voiceover(str(narration), voice_path)
-                duration = sum(float(shot["duration"]) for shot in story["shots"])
-                with wave.open(str(voice_path), "rb") as audio:
-                    audio_duration = audio.getnframes() / float(audio.getframerate())
-                _write_ass_captions(str(narration), min(audio_duration, duration), caption_path)
-                escaped_caption_path = caption_path.resolve().as_posix().replace(":", r"\:").replace("'", r"\'")
-                subprocess.run(
-                    [
-                        "ffmpeg", "-y", "-i", str(silent_output), "-i", str(voice_path),
-                        "-vf", f"subtitles='{escaped_caption_path}'",
-                        "-map", "0:v:0", "-map", "1:a:0", "-c:v", "libx264",
-                        "-preset", "veryfast", "-crf", "19",
-                        "-c:a", "aac", "-b:a", "192k", "-af", "apad",
-                        "-t", str(duration), "-movflags", "+faststart", str(output_path),
-                    ],
-                    check=True, capture_output=True, text=True,
-                )
-            finally:
-                voice_path.unlink(missing_ok=True)
-                caption_path.unlink(missing_ok=True)
-                silent_output.unlink(missing_ok=True)
+            picture_seconds = sum(frame_counts) / FPS
+            _write_ass_captions(str(narration), speech_seconds, caption_path)
+            escaped_caption_path = caption_path.resolve().as_posix().replace(":", r"\:").replace("'", r"\'")
+            subprocess.run(
+                [
+                    "ffmpeg", "-y", "-i", str(silent_output), "-i", str(voice_path),
+                    "-vf", f"subtitles='{escaped_caption_path}'",
+                    "-map", "0:v:0", "-map", "1:a:0", "-c:v", "libx264",
+                    "-preset", "veryfast", "-crf", "19",
+                    "-c:a", "aac", "-b:a", "192k", "-af", "apad",
+                    "-t", f"{picture_seconds:.3f}", "-movflags", "+faststart",
+                    str(output_path),
+                ],
+                check=True, capture_output=True, text=True,
+            )
         else:
             silent_output.replace(output_path)
     finally:
-        concat_file.unlink(missing_ok=True)
-        silent_output.unlink(missing_ok=True)
-        for segment in segment_paths:
-            segment.unlink(missing_ok=True)
+        for leftover in (concat_file, silent_output, voice_path, caption_path, *segment_paths):
+            leftover.unlink(missing_ok=True)
     return output_path

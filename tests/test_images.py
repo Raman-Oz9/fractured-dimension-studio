@@ -279,24 +279,49 @@ def test_free_provider_fallback_is_used_without_cloudflare(tmp_path, monkeypatch
     assert captured["prompt"] == "A cinematic scene"
 
 
-def test_character_reference_falls_back_to_free_text_provider_without_claiming_reference(tmp_path, monkeypatch):
+def test_character_shot_refuses_text_only_fallback_without_cloudflare(tmp_path, monkeypatch):
+    """Reference shots must fail loudly rather than redesign the character."""
+    import pytest
     import fractured_dimension.images as images
 
     reference = tmp_path / "character.png"
     reference.write_bytes(b"reference")
     monkeypatch.delenv("CLOUDFLARE_ACCOUNT_ID", raising=False)
     monkeypatch.delenv("CLOUDFLARE_API_TOKEN", raising=False)
-    monkeypatch.setattr(
-        images, "_free_provider_fallback",
-        lambda prompt, destination: (destination, "pollinations-flux", "pollinations-flux")
-    )
-    destination = tmp_path / "shot.png"
-    destination.write_bytes(b"generated")
-    _, provider, model = images._request_image_with_fallback(
-        "Mara in a rainy city", destination, images.DEFAULT_REFERENCE_MODEL, [reference]
-    )
-    assert provider == "pollinations-flux"
-    assert model == "pollinations-flux"
+
+    def free_provider_must_not_run(prompt, destination):
+        raise AssertionError("text-only free providers must not serve reference shots")
+
+    monkeypatch.setattr(images, "_free_provider_fallback", free_provider_must_not_run)
+    with pytest.raises(RuntimeError, match="Character continuity requires Cloudflare"):
+        images._request_image_with_fallback(
+            "Mara in a rainy city", tmp_path / "shot.png",
+            images.DEFAULT_REFERENCE_MODEL, [reference],
+        )
+
+
+def test_character_shot_does_not_fall_back_when_cloudflare_fails(tmp_path, monkeypatch):
+    import pytest
+    import fractured_dimension.images as images
+
+    reference = tmp_path / "character.png"
+    reference.write_bytes(b"reference")
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "account")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "token")
+
+    def cloudflare_fails(prompt, destination, model, references=None):
+        raise RuntimeError("Cloudflare image generation failed (400): flagged")
+
+    def free_provider_must_not_run(prompt, destination):
+        raise AssertionError("text-only free providers must not serve reference shots")
+
+    monkeypatch.setattr(images, "_request_image", cloudflare_fails)
+    monkeypatch.setattr(images, "_free_provider_fallback", free_provider_must_not_run)
+    with pytest.raises(RuntimeError, match="refusing an unconditioned fallback"):
+        images._request_image_with_fallback(
+            "Mara in a rainy city", tmp_path / "shot.png",
+            images.DEFAULT_REFERENCE_MODEL, [reference],
+        )
 
 
 def test_free_provider_fallback_order_ends_with_pollinations(monkeypatch, tmp_path):
