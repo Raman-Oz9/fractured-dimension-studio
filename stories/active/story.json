@@ -6,10 +6,12 @@
     "height": 1920,
     "fps": 30
   },
-  "style_lock": "Fractured Dimension signature flat procedural illustration: hand-drawn 2D graphic shapes and bold ink outlines, six-colour palette only (obsidian black, electric blue, fracture red, cosmic violet, signal yellow, paper white), grainy retro print texture and restrained halftone, visible paper fibres, strong silhouettes, expressive readable faces, layered geometric environments, imperfect screen-print registration. Characters are built from consistent simple primitives and remain on-model. Animate bodies and limbs through clear poses, contact-driven interactions and anticipation; every frame is a deterministic pure function of time. Camera moves are purposeful and composed around the action. Absolutely no photorealism, glossy 3D, plastic CGI, painterly 3D character rendering, gradients outside palette, or AI-generated concept-art look.",
+  "style_lock": "FRACTURED DIMENSION — AI-GENERATED FRACTURED-GLASS ILLUSTRATION STYLE. Create richly detailed, cinematic, story-specific digital illustrations, as if each scene is a frame from the same premium dark-fantasy graphic novel. The defining visual language is fractured glass: intricate branching cracks, sharp translucent glass planes and floating shards, prismatic refractions, luminous fracture seams, layered depth and dimensional distortion integrated into the environment and lighting. Use dramatic chiaroscuro, atmospheric midnight blues and deep obsidian shadows, electric cyan/blue highlights, fracture red accents, cosmic violet, signal-yellow practical lights and warm paper-white highlights. Painterly illustrated surfaces with crisp deliberate linework, tactile fine-grain print texture, controlled halftone in shadows, expressive cinematic faces, coherent anatomy, strong readable silhouettes, sophisticated composition and volumetric atmosphere. Every shot must look like a bespoke AI-generated illustration that directly depicts the exact action, object and emotion described in its image prompt and narration beat. Maintain the same character design, costume, face and proportions in every scene using the supplied character reference image. This is NOT flat procedural art, NOT primitive geometric stick figures, NOT a vector poster, NOT a slideshow template, NOT photorealistic photography, and NOT glossy plastic 3D CGI. Do not add lettering, captions, logos, watermarks, borders or UI.",
   "character_bible": {
     "BORO": {
-      "visual_identity": "Boro is a short, slightly hunched adult street magician with narrow shoulders, long thin arms, a pointed nose, deep-set expressive eyes, a thin curled moustache and one visible gold tooth. He wears the same oversized angular black-and-cosmic-violet patchwork coat, crooked black top hat tied with one fracture-red thread, striped charcoal trousers, mismatched boots and a silver glove on his left hand. Keep his face, proportions, costume and signature details identical in every shot."
+      "visual_identity": "Boro is a short, slightly hunched adult street magician with narrow shoulders, long thin arms, a pointed nose, deep-set expressive eyes, a thin curled moustache and one visible gold tooth. He wears the same oversized angular black-and-cosmic-violet patchwork coat, crooked black top hat tied with one fracture-red thread, striped charcoal trousers, mismatched boots and a silver glove on his left hand. Keep his face, proportions, costume and signature details identical in every shot.",
+      "reference_image": "images/character-boro-reference.png",
+      "reference_prompt": "Create the definitive recurring-character reference illustration for Boro, the street magician, in the Fractured Dimension fractured-glass illustration style. Full-body three-quarter standing view with a separate clear face portrait inset, neutral dark atmospheric background with subtle glass fractures. Preserve every costume and facial detail exactly; make him instantly recognizable and reusable across scenes."
     }
   },
   "shots": [
@@ -40,7 +42,7 @@
           "y": 0.43
         }
       ],
-      "image_prompt": "Vertical cinematic wide establishing view of the Midnight Market, a crooked impossible night bazaar between leaning buildings, wet cobblestones, hanging yellow lanterns, violet shop awnings. Boro, the small patchwork-coat magician, performs a tiny unimpressive shadow puppet beneath one lonely yellow spotlight; bored silhouettes watch. Deep layered perspective, graphic-novel composition."
+      "image_prompt": "Establishing cinematic wide shot of the Midnight Market at 2:13 a.m., a strange crowded night bazaar between towering crooked old buildings, wet cobblestones reflecting fractured blue and violet light, hanging signal-yellow lanterns, violet shop awnings and drifting mist. Boro, a short awkward street magician in his distinctive oversized patchwork coat and crooked top hat, performs a small shadow trick beneath a lonely spotlight. A few market-goers watch without much interest. Intricate fractured-glass cracks shimmer across the architecture and pavement, richly layered depth, dramatic illustrated composition."
     },
     {
       "image": "images/shot-02.png",
@@ -69,7 +71,7 @@
           "y": 0.32
         }
       ],
-      "image_prompt": "Dramatic medium close-up of Boro frozen mid-performance, crooked top hat and red thread, pointed nose, curled moustache, gold tooth, silver left glove visible. Behind him his shadow is no longer copying his raised hand; the shadow's head tilts away in unmistakable boredom. Midnight Market lantern bokeh, tense electric-blue rim light, red hairline fractures on the cobbles."
+      "image_prompt": "Narrative close-medium illustration of Boro taking a theatrical bow and accepting the attention, while his living shadow behind him secretly does all the hard work: one elongated shadow arm catches several falling gold coins, another balances a glowing lantern, and the shadow's silhouette performs an intricate trick on the wall. Boro looks pleased with himself and unaware. Make the contrast between the applauded magician and the overlooked hardworking shadow instantly readable. Midnight Market, fractured-glass reflections, cinematic dark-fantasy illustration."
     },
     {
       "image": "images/shot-03.png",
@@ -98,7 +100,7 @@
           "y": 0.48
         }
       ],
-      "image_prompt": "Low-angle surreal action frame: Boro remains at frame left, stunned, while his own tall fluid black shadow physically peels away from his boots and walks independently toward frame right. Shadow keeps Boro's crooked top-hat silhouette, glowing electric-blue eyes and thin fracture-red smile. Red geometric cracks split the pavement, lanterns swing."
+      "image_prompt": "The shadow finally separates from Boro's boots. Low-angle dramatic action composition: Boro stands frozen in shock on the left, while his tall living shadow peels away from the cobblestones and takes its first independent step toward the right. The shadow retains the unmistakable silhouette of Boro's crooked top hat and coat, but has expressive luminous electric-blue eyes and a thin fracture-red smile. Glass-like cracks race outward from the point where it detached; lanterns swing overhead. Strong emotional storytelling and dimensional fractured-glass illustration."
     },
     {
       "image": "images/shot-04.png",
@@ -127,7 +129,7 @@
           "y": 0.52
         }
       ],
-      "image_prompt": "The independent shadow now owns the market stage, performing elegant impossible acrobatics beneath a brilliant electric-blue spotlight: impossibly long arms make giant birds and floating geometric shapes across the walls. A diverse crowd erupts with joy. Boro is tiny and forgotten at the edge. Grand wide perspective, violet-black architecture, yellow lantern sparks."
+      "image_prompt": "The shadow takes over the Midnight Market stage and performs a breathtaking show of its own. It balances glowing lanterns, catches spinning coins in midair, and sends impossible luminous birds dancing across the surrounding walls as if made from shards of light. The crowd erupts in amazement and applause, faces illuminated by electric-blue and signal-yellow light. Boro stands small and forgotten at the edge of the stage. Grand cinematic wide composition, elaborate fractured-glass architecture and prismatic shards."
     },
     {
       "image": "images/shot-05.png",
@@ -156,7 +158,7 @@
           "y": 0.56
         }
       ],
-      "image_prompt": "Physical comedy action shot: Boro desperately imitates the shadow's elegant trick, his oversized patchwork coat tangled around his thin legs as he trips forward, crooked hat flying, silver glove reaching out. Exaggerated but anatomically coherent pose, diagonal composition, blurred crowd laughing in background, fracture-red motion accents."
+      "image_prompt": "Physical-comedy action illustration: jealous Boro rushes toward the stage trying to reclaim the audience's attention, but his oversized angular patchwork coat tangles around his thin legs. He pitches forward and lands flat on the wet cobblestones, crooked top hat flying through the air, silver-gloved hand reaching out. The shadow remains poised and successful in the background. Exaggerated readable action, expressive face, dramatic diagonal composition, fractured-glass reflections and red fracture accents."
     },
     {
       "image": "images/shot-06.png",
@@ -185,7 +187,7 @@
           "y": 0.48
         }
       ],
-      "image_prompt": "Two-character theatrical confrontation in the spotlight. Boro kneels on the cobbles, embarrassed and wide-eyed, looking up. His tall living shadow stands confidently before him, same crooked top-hat silhouette, glowing blue eyes and red smile, one elongated finger pointing at a humble broom on the ground. Clean readable silhouettes, strong graphic-novel staging."
+      "image_prompt": "The aftermath: Boro kneels awkwardly on the cobblestones, embarrassed and wide-eyed, looking up at his tall independent living shadow. The shadow stands confidently in the spotlight and calmly points one elongated finger toward a plain wooden broom lying on the ground beside Boro. Their power relationship is unmistakable: the shadow is now the star and Boro is being assigned assistant duties. Clear two-character staging, expressive silhouettes, intricate glass fractures catching blue and violet light."
     },
     {
       "image": "images/shot-07.png",
@@ -214,7 +216,7 @@
           "y": 0.52
         }
       ],
-      "image_prompt": "Grand comic tableau: Boro reluctantly holds a broom like a stage assistant while his shadow takes a triumphant bow at centre stage. The night-market crowd gives a standing ovation, paper-white confetti and signal-yellow spotlights, dimensional layered audience, triumphant but absurd mood."
+      "image_prompt": "Grand triumphant comic tableau: Boro reluctantly stands at the edge of the stage holding the broom like a hired stage assistant, shoulders slumped and face humiliated. Centre stage, his living shadow takes a magnificent theatrical bow beneath brilliant spotlights. The entire Midnight Market crowd rises in a standing ovation, cheering toward the shadow, not Boro. Paper-white confetti, signal-yellow beams, electric-blue glass refractions, deep violet atmosphere, richly detailed cinematic illustration."
     },
     {
       "image": "images/shot-08.png",
@@ -243,10 +245,9 @@
           "y": 0.45
         }
       ],
-      "image_prompt": "Final punchline close-up: Boro's embarrassed face fills the frame, deep-set eyes and single gold tooth visible in a furious forced grin. In the background his living shadow quietly steals his crooked top hat with one elongated hand. Electric-blue glint, fracture-red edge accents, rich paper grain, comic timing, strong readable expression."
+      "image_prompt": "Final punchline close-up: Boro's embarrassed face and crooked forced smile dominate the foreground; his pointed nose, curled moustache and single gold tooth are clearly visible. Behind him, slightly out of focus but unmistakable, his living shadow quietly takes possession of Boro's crooked top hat while the crowd continues applauding the shadow. Boro realizes he has become the assistant. Wry dark-fantasy comedy, expressive acting, luminous fractured-glass cracks, beautiful prismatic highlights, cinematic illustrated finish."
     }
   ],
   "episode_id": "FD-01",
-  "render_mode": "procedural",
-  "render_revision": 6
+  "render_revision": 7
 }
