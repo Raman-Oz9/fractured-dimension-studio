@@ -328,9 +328,25 @@ def _request_image_with_fallback(
         os.getenv("CLOUDFLARE_ACCOUNT_ID") and os.getenv("CLOUDFLARE_API_TOKEN")
     )
 
+    references = reference_images or []
+    if references:
+        if not has_cloudflare:
+            raise RuntimeError(
+                "Character continuity requires Cloudflare reference-image support; "
+                "refusing text-only fallback that could redesign the character."
+            )
+        try:
+            result = _request_image(prompt, destination, model, references)
+            return result, "cloudflare", model
+        except RuntimeError as exc:
+            raise RuntimeError(
+                "Reference-conditioned image generation failed; refusing an "
+                f"unconditioned fallback to protect character continuity: {exc}"
+            ) from exc
+
     if has_cloudflare:
         try:
-            result = _request_image(prompt, destination, model, reference_images)
+            result = _request_image(prompt, destination, model, [])
             return result, "cloudflare", model
         except RuntimeError as exc:
             print(
@@ -477,7 +493,12 @@ def _shot_prompt(story: dict, shot: dict, index: int) -> str:
         "only: no duplicate head, floating head, detached face, side-face overlay, "
         "second face, extra facial features, merged bodies, extra limbs, malformed "
         "hands, or mirrored anatomy. Do not show alternate views of the same character "
-        "in a single story frame. Keep the full head inside the frame unless intentionally cropped.",
+        "in a single story frame. Keep the full head inside the frame unless intentionally cropped. "
+        "THIS IS A STORY SCENE, NOT A CHARACTER DESIGN SHEET: create exactly one finished "
+        "cinematic narrative illustration for the described moment. Never create a model "
+        "sheet, turnaround, contact sheet, collage, portrait inset, split panel, expression "
+        "board, sketch page, multiple views, or neutral studio backdrop. Do not copy the "
+        "layout of the supplied character reference; use it only to preserve the character's identity.",
     ]
     if continuity:
         parts.append(
