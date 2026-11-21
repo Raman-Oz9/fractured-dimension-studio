@@ -264,7 +264,7 @@ def make_frame_overlay() -> tuple[Image.Image, Image.Image]:
 def make_grain(seed: int) -> Image.Image:
     rng = np.random.default_rng(seed)
     noise = rng.normal(0, 1, (H // 2, W // 2)).astype(np.float32)
-    img = Image.fromarray(np.clip(246 + noise * 5, 200, 255).astype(np.uint8), "L")
+    img = Image.fromarray(np.clip(250 + noise * 3, 220, 255).astype(np.uint8), "L")
     return img.resize((W, H), Image.Resampling.NEAREST)
 
 
@@ -505,7 +505,7 @@ def render_manga_story(story: dict[str, Any], output: str | Path) -> Path:
             "-i", str(mix_path),
             "-vf", f"subtitles='{escaped}'",
             "-map", "0:v:0", "-map", "1:a:0",
-            "-c:v", "libx264", "-preset", "veryfast", "-crf", "17", "-pix_fmt", "yuv420p",
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-maxrate", "8M", "-bufsize", "16M", "-pix_fmt", "yuv420p",
             "-c:a", "aac", "-b:a", "192k",
             "-af", "highpass=f=60,loudnorm=I=-16:TP=-1.5:LRA=11",
             "-t", f"{total:.3f}", "-movflags", "+faststart", str(out),
@@ -528,7 +528,7 @@ def render_manga_story(story: dict[str, Any], output: str | Path) -> Path:
                 for local in range(max(1, round(entry["duration"] * FPS))):
                     img = _frame_image(panel, shot, entry, local, masks, light, lettering)
                     if grains:
-                        img = ImageChops.multiply(img, grains[(frame_counter // 2) % 3])
+                        img = ImageChops.multiply(img, grains[(frame_counter // 3) % 3])
                     img.paste(pixels_frame, mask=mask_frame)
                     rgb = Image.merge("RGB", (img.point(lut_r), img.point(lut_g), img.point(lut_b)))
                     proc.stdin.write(rgb.tobytes())
