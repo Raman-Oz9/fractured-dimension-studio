@@ -13,7 +13,8 @@ import numpy as np
 
 RATE = 24000
 VOICE_TARGET_RMS = 0.11
-MUSIC_RMS = 0.05  # roughly 7 dB under narration between lines, ~11 dB while he speaks
+MUSIC_RMS = 0.05  # legacy constant
+MUSIC_PHONE_RMS = 0.05  # loudness of the bed in the band phone speakers can play (>150 Hz)
 SFX_PEAK = 0.38
 
 
@@ -150,8 +151,55 @@ def stinger(seconds: float = 1.4) -> np.ndarray:
     return (out * np.exp(-t * 3.2) * 0.35).astype(np.float32) + impact(seconds)[: t.size] * 0.7
 
 
+def air_pass(seconds: float = 0.9, seed: int = 11) -> np.ndarray:
+    """A cold draught moving past: dark, soft and unmistakably not a cartoon whoosh."""
+    rng = np.random.default_rng(seed)
+    n = _bandpass_noise(rng, seconds, 120, 750)
+    return (n * np.sin(np.linspace(0, np.pi, n.size)) ** 2 * 0.8).astype(np.float32)
+
+
+def sub_hit(seconds: float = 1.5) -> np.ndarray:
+    """A deep, rounded boom with a rumbling tail and no bright crack."""
+    rng = np.random.default_rng(12)
+    t = _t(seconds)
+    freq = 34 + 60 * np.exp(-t * 9)
+    body = np.sin(2 * np.pi * np.cumsum(freq) / RATE) * np.exp(-t * 3.4)
+    harm = np.sin(2 * np.pi * np.cumsum(freq * 2.01) / RATE) * np.exp(-t * 6.0) * 0.6  # audible on phones
+    rumble = _bandpass_noise(rng, seconds, 60, 320) * np.exp(-t * 2.6) * 0.5
+    return (body + harm + rumble).astype(np.float32)
+
+
+def dread_swell(seconds: float = 2.4) -> np.ndarray:
+    """Dissonant low strings swelling and fading: the sound of something wrong in the room."""
+    t = _t(seconds)
+    out = np.zeros_like(t)
+    for f in (110.0, 116.5, 164.8, 174.6):
+        for k in (1, 2, 3, 4):
+            out += np.sin(2 * np.pi * f * k * t) / k
+    return (out * np.hanning(t.size) * 0.3).astype(np.float32)
+
+
+def murmur(seconds: float = 3.0, seed: int = 13) -> np.ndarray:
+    """Distant whispering voices: band noise chopped into syllable-like bursts."""
+    rng = np.random.default_rng(seed)
+    base = _bandpass_noise(rng, seconds, 450, 2800)
+    gate = np.clip(np.sin(2 * np.pi * rng.uniform(4.5, 6.5) * _t(seconds)[: base.size] + rng.uniform(0, 6.28)), 0, 1) ** 1.5
+    return (base * gate * np.sin(np.linspace(0, np.pi, base.size)) * 0.7).astype(np.float32)
+
+
 SFX["riser"] = riser
 SFX["stinger"] = stinger
+SFX["air_pass"] = air_pass
+SFX["sub_hit"] = sub_hit
+SFX["dread_swell"] = dread_swell
+SFX["murmur"] = murmur
+
+# Horror, thriller and scary-documentary stories never use playful sounds: each cartoon-ish
+# effect maps to a chilling equivalent (or is dropped) so viewers take the story seriously.
+TENSE_SFX_MAP: dict[str, str | None] = {
+    "whoosh": "air_pass", "whoosh_back": "air_pass", "impact": "sub_hit", "chime": "dread_swell",
+    "coin": None, "crowd": "murmur",
+}
 
 
 # ----------------------------------------------------------------------------- mood beds
@@ -196,10 +244,14 @@ def _wind(seconds: float, rng: np.random.Generator, level: float = 1.0) -> np.nd
 
 
 def _drone(t: np.ndarray, freqs: tuple[tuple[float, float, float], ...], rng: np.random.Generator) -> np.ndarray:
+    """Slowly breathing drones. Upper harmonics are stacked on every note because phone
+    speakers cannot reproduce deep bass: the harmonics are what make the dread audible."""
     out = np.zeros_like(t)
     for freq, gain, lfo in freqs:
         wobble = 0.65 + 0.35 * np.sin(2 * np.pi * lfo * t + rng.uniform(0, 6.28))
-        out += gain * wobble * np.sin(2 * np.pi * freq * t + 0.4 * np.sin(2 * np.pi * 0.05 * t))
+        drift = 0.4 * np.sin(2 * np.pi * 0.05 * t)
+        for harmonic, weight in ((1, 1.0), (2, 0.8), (3, 0.6), (4, 0.4), (5, 0.28), (6, 0.18)):
+            out += gain * weight * wobble * np.sin(2 * np.pi * freq * harmonic * t + drift * harmonic)
     return out
 
 
@@ -401,7 +453,8 @@ def _carve_voice_pocket(bed: np.ndarray) -> np.ndarray:
     """Dip the bed 6 dB across the speech band so narration always sits on top of it."""
     spectrum = np.fft.rfft(bed)
     freqs = np.fft.rfftfreq(bed.size, 1 / RATE)
-    gain = np.interp(freqs, [0, 150, 280, 3200, 5200, RATE / 2], [1.0, 1.0, 0.5, 0.5, 1.0, 0.7])
+    # Sub-bass is trimmed too: phones cannot play it, and it would only eat loudness headroom.
+    gain = np.interp(freqs, [0, 60, 110, 150, 280, 3200, 5200, RATE / 2], [0.15, 0.3, 0.7, 1.0, 0.6, 0.6, 1.0, 0.8])
     return np.fft.irfft(spectrum * gain, bed.size).astype(np.float32)
 
 
@@ -414,8 +467,12 @@ def music_bed(seconds: float, mood: str = "mystery", seed: int = 7) -> np.ndarra
     t = _t(seconds)[: out.size]
     fade = np.minimum(1.0, np.minimum(t / 2.0, (seconds - t) / 2.5))
     out = _carve_voice_pocket(out * np.clip(fade, 0, 1))
-    rms = float(np.sqrt(np.mean(out ** 2))) or 1.0
-    return (out / rms * MUSIC_RMS * MOOD_GAIN[mood]).astype(np.float32)
+    # Level by what a phone can actually play (above 150 Hz), not by inaudible sub-bass.
+    spectrum = np.fft.rfft(out)
+    freqs = np.fft.rfftfreq(out.size, 1 / RATE)
+    audible = np.fft.irfft(spectrum * (freqs > 150), out.size)
+    rms = float(np.sqrt(np.mean(audible ** 2))) or 1.0
+    return (out / rms * MUSIC_PHONE_RMS * MOOD_GAIN[mood]).astype(np.float32)
 
 
 def normalise_voice(audio: np.ndarray) -> np.ndarray:
@@ -427,7 +484,7 @@ def normalise_voice(audio: np.ndarray) -> np.ndarray:
     return audio * gain
 
 
-def duck_envelope(voice: np.ndarray, floor: float = 0.6) -> np.ndarray:
+def duck_envelope(voice: np.ndarray, floor: float = 0.62) -> np.ndarray:
     """Music gain that dips while someone is speaking and recovers in the gaps."""
     window = int(0.18 * RATE)
     smooth = np.convolve(np.abs(voice), np.ones(window) / window, mode="same")
@@ -458,6 +515,10 @@ def mix_soundtrack(
     for when, name, gain in sfx_events:
         if name not in SFX:
             raise ValueError(f"Unknown sound effect '{name}'")
+        if mood in TENSE_MOODS and name in TENSE_SFX_MAP:
+            name = TENSE_SFX_MAP[name]
+            if name is None:
+                continue
         effect = SFX[name]()
         effect = effect / (np.max(np.abs(effect)) + 1e-9) * SFX_PEAK * gain
         begin = max(0, int(when * RATE))

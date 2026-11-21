@@ -34,18 +34,18 @@ on:
         description: Narration speed (1.0 = normal; deep voices read best at 0.95-1.05)
         required: false
         type: string
-        default: "0.85"
+        default: "0.92"
       narrator_style:
-        description: villain = deep, gravelly, menacing; dark = hollow storyteller; natural = clean
+        description: natural = clean, close, dry (recommended); villain/dark add effects that can sound like a loudspeaker
         required: false
         type: choice
-        options: [villain, dark, natural]
-        default: villain
+        options: [natural, villain, dark]
+        default: natural
       voice_depth:
-        description: Extra narrator depth in semitones (0 = natural, 2 = moody, 3.5 = villain, 5 = extreme)
+        description: Extra narrator depth in semitones (0 = natural, 1 = slightly deeper, 2 = deep)
         required: false
         type: string
-        default: "3.5"
+        default: "1.0"
       mood:
         description: Soundtrack mood (auto reads the script)
         required: false
@@ -71,9 +71,9 @@ jobs:
     env:
       VOICE_BACKEND: ${{ inputs.voice_backend || 'kokoro' }}
       KOKORO_VOICE: ${{ inputs.narrator || 'am_onyx' }}
-      KOKORO_SPEED: ${{ inputs.narrator_speed || '0.85' }}
-      VOICE_DEPTH: ${{ inputs.voice_depth || '3.5' }}
-      VOICE_STYLE: ${{ inputs.narrator_style || 'villain' }}
+      KOKORO_SPEED: ${{ inputs.narrator_speed || '0.92' }}
+      VOICE_DEPTH: ${{ inputs.voice_depth || '1.0' }}
+      VOICE_STYLE: ${{ inputs.narrator_style || 'natural' }}
       STORY_MOOD: ${{ inputs.mood == 'auto' && '' || inputs.mood }}
       VOICESTUDIO_BASE_URL: ${{ secrets.VOICESTUDIO_BASE_URL }}
       VOICESTUDIO_API_KEY: ${{ secrets.VOICESTUDIO_API_KEY }}
@@ -169,7 +169,7 @@ jobs:
             stories/active/story.json
           if-no-files-found: ignore
 
-      - name: Voice lab (same line at three villain strengths)
+      - name: Voice lab (same line, four clean voices)
         continue-on-error: true
         run: |
           python - <<'PY'
@@ -179,13 +179,15 @@ jobs:
           line = "You thought the dark was empty. It was only waiting for you to stop looking."
           out = Path("voice-lab"); out.mkdir(exist_ok=True)
           files = []
-          for name, depth, speed in (("A-moody", 2.0, 0.9), ("B-villain", 3.5, 0.85), ("C-extreme", 5.0, 0.82)):
-              os.environ["VOICE_DEPTH"], os.environ["KOKORO_SPEED"], os.environ["VOICE_STYLE"] = str(depth), str(speed), "villain"
+          for name, voice, depth, speed in (
+              ("A-onyx", "am_onyx", 0.0, 0.92), ("B-onyx-deeper", "am_onyx", 1.5, 0.9),
+              ("C-michael", "am_michael", 0.8, 0.92), ("D-fable-british", "bm_fable", 0.8, 0.92)):
+              os.environ.update(KOKORO_VOICE=voice, VOICE_DEPTH=str(depth), KOKORO_SPEED=str(speed), VOICE_STYLE="natural")
               files.append(generate_voice_lines([line], out / name, name)[0])
+          subprocess.run(["ffmpeg","-y","-v","error","-f","lavfi","-i","anullsrc=r=24000:cl=mono","-t","1.0","silence.wav"],check=True)
           listing = out / "list.txt"
           listing.write_text("".join(f"file '{f.resolve()}'\nfile '{Path('silence.wav').resolve()}'\n" for f in files))
-          subprocess.run(["ffmpeg","-y","-v","error","-f","lavfi","-i","anullsrc=r=24000:cl=mono","-t","1.0",str(Path("silence.wav"))],check=True)
-          subprocess.run(["ffmpeg","-y","-v","error","-f","concat","-safe","0","-i",str(listing),"-b:a","128k","voice-lab.mp3"],check=True)
+          subprocess.run(["ffmpeg","-y","-v","error","-f","concat","-safe","0","-i",str(listing),"-b:a","160k","voice-lab.mp3"],check=True)
           PY
 
       - name: Publish test render to the test-renders branch (never uploads to YouTube)

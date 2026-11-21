@@ -133,23 +133,27 @@ def deepen_voice(path: Path, semitones: float) -> Path:
     import subprocess
 
     style = _voice_style()
-    if (semitones <= 0 and style == "natural") or shutil.which("ffmpeg") is None:
+    if (semitones <= 0 and style == "natural" and os.environ.get("VOICE_CLOSE", "1") != "1") or shutil.which("ffmpeg") is None:
         return path
     factor = 2 ** (-max(semitones, 0) / 12)
     tmp = path.with_suffix(".deep.wav")
-    chain = f"asetrate=24000*{factor:.5f},aresample=24000,atempo={1 / factor:.5f}"
+    chain = "highpass=f=70"
+    if semitones > 0:
+        chain += f",asetrate=24000*{factor:.5f},aresample=24000,atempo={1 / factor:.5f}"
     if style == "villain":
         chain += (
             ",equalizer=f=85:t=h:w=140:g=6,equalizer=f=170:t=q:w=1:g=2.5,equalizer=f=2800:t=q:w=1.2:g=2,"
-            "equalizer=f=8000:t=h:w=2000:g=-6,"
-            "volume=2.4,asoftclip=type=tanh,volume=0.45,"
+            "equalizer=f=8000:t=h:w=2000:g=-6,volume=2.4,asoftclip=type=tanh,volume=0.45,"
             "acompressor=threshold=-24dB:ratio=4.5:attack=4:release=110:makeup=3,"
             "aecho=0.65:0.4:60|130:0.14|0.07,lowpass=f=7200"
         )
     else:
+        # Close, dry and clear: warmth in the chest, presence for intelligibility, air left intact.
+        # No echo, no saturation, no top-end roll-off: it should sound like it is inside the phone.
         chain += (
-            ",equalizer=f=105:t=h:w=160:g=4,equalizer=f=250:t=q:w=1:g=1.5,equalizer=f=7500:t=h:w=2000:g=-3,"
-            "acompressor=threshold=-21dB:ratio=3:attack=6:release=90:makeup=2"
+            ",equalizer=f=120:t=h:w=150:g=2.5,equalizer=f=3200:t=q:w=1.2:g=1.5,"
+            "equalizer=f=9000:t=h:w=2000:g=1,"
+            "acompressor=threshold=-20dB:ratio=2.5:attack=8:release=140:makeup=2"
         )
         if style == "dark":
             chain += ",aecho=0.8:0.55:38|85:0.22|0.12,lowpass=f=6800"
