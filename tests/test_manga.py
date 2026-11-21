@@ -107,7 +107,7 @@ def test_narration_flows_without_long_gaps():
     story = {"shots": [{"narration": "One, two"}, {"narration": "three."}, {"narration": "Four."}]}
     timeline = manga.plan_timeline(story, [1.0, 1.0, 1.0])
     gaps = [timeline[i]["duration"] - 1.0 for i in (1,)]
-    assert gaps[0] <= 0.2
+    assert gaps[0] <= 0.35
 
 
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="FFmpeg required")

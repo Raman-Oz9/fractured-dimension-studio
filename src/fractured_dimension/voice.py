@@ -124,15 +124,19 @@ def deepen_voice(path: Path, semitones: float) -> Path:
     import shutil
     import subprocess
 
-    if semitones <= 0 or shutil.which("ffmpeg") is None:
+    eerie = os.environ.get("VOICE_EERIE", "0") == "1"
+    if (semitones <= 0 and not eerie) or shutil.which("ffmpeg") is None:
         return path
-    factor = 2 ** (-semitones / 12)
+    factor = 2 ** (-max(semitones, 0) / 12)
     tmp = path.with_suffix(".deep.wav")
     chain = (
         f"asetrate=24000*{factor:.5f},aresample=24000,atempo={1 / factor:.5f},"
         "equalizer=f=105:t=h:w=160:g=4,equalizer=f=250:t=q:w=1:g=1.5,equalizer=f=7500:t=h:w=2000:g=-3,"
         "acompressor=threshold=-21dB:ratio=3:attack=6:release=90:makeup=2"
     )
+    if os.environ.get("VOICE_EERIE", "0") == "1":
+        # A cold, slightly hollow edge: short room echo and a touch less top end.
+        chain += ",aecho=0.8:0.55:38|85:0.22|0.12,lowpass=f=6800"
     subprocess.run(
         ["ffmpeg", "-y", "-v", "error", "-i", str(path), "-af", chain, "-ac", "1", "-ar", "24000",
          "-c:a", "pcm_s16le", str(tmp)],

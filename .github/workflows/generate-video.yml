@@ -34,12 +34,18 @@ on:
         description: Narration speed (1.0 = normal; deep voices read best at 0.95-1.05)
         required: false
         type: string
-        default: "1.0"
+        default: "0.88"
+      narrator_style:
+        description: dark = slightly scary, hollow storyteller edge; natural = clean
+        required: false
+        type: choice
+        options: [dark, natural]
+        default: dark
       voice_depth:
-        description: Extra narrator depth in semitones (0 = natural, 2.5 = deep documentary voice)
+        description: Extra narrator depth in semitones (0 = natural, 1.2 = moody, 2.5 = very deep)
         required: false
         type: string
-        default: "2.5"
+        default: "1.2"
       mood:
         description: Soundtrack mood (auto reads the script)
         required: false
@@ -65,8 +71,9 @@ jobs:
     env:
       VOICE_BACKEND: ${{ inputs.voice_backend || 'kokoro' }}
       KOKORO_VOICE: ${{ inputs.narrator || 'am_onyx' }}
-      KOKORO_SPEED: ${{ inputs.narrator_speed || '1.0' }}
-      VOICE_DEPTH: ${{ inputs.voice_depth || '2.5' }}
+      KOKORO_SPEED: ${{ inputs.narrator_speed || '0.88' }}
+      VOICE_DEPTH: ${{ inputs.voice_depth || '1.2' }}
+      VOICE_EERIE: ${{ inputs.narrator_style == 'natural' && '0' || '1' }}
       STORY_MOOD: ${{ inputs.mood == 'auto' && '' || inputs.mood }}
       VOICESTUDIO_BASE_URL: ${{ secrets.VOICESTUDIO_BASE_URL }}
       VOICESTUDIO_API_KEY: ${{ secrets.VOICESTUDIO_API_KEY }}

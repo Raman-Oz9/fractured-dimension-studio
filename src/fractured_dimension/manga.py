@@ -30,8 +30,8 @@ FRAME_LINE = 6
 PAPER = (252, 250, 244)
 INK = (12, 12, 16)
 FIRST_LEAD = 0.5
-SENTENCE_GAP = 0.16  # narration flows: lines run nearly back to back
-CLAUSE_GAP = 0.07
+SENTENCE_GAP = 0.28  # narration flows: lines run nearly back to back
+CLAUSE_GAP = 0.10
 FINAL_TAIL = 1.4
 
 # keyframes: at, zoom, x, y [, roll degrees]. x/y anchor the crop inside the panel
