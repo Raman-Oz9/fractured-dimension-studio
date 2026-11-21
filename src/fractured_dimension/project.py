@@ -17,7 +17,8 @@ _MANGA_MOVES = {
 _FX = {"speed_lines", "focus_lines", "impact", "gloom", "flash"}
 _TRANSITIONS = {"cut", "whip", "flash", "dip"}
 _EASES = {"smooth", "snap", "linear", "in"}
-_SFX = {"whoosh", "whoosh_back", "impact", "chime", "coin", "crowd", "heartbeat"}
+_SFX = {"whoosh", "whoosh_back", "impact", "chime", "coin", "crowd", "heartbeat", "riser", "stinger"}
+_MOODS = {"auto", "mystery", "horror", "documentary_dark", "thriller", "dark_comedy", "comedy", "epic", "sad", "wonder"}
 ANGLES = {
     "eye": "eye-level medium shot",
     "low": "dramatic low-angle shot looking up, strong foreshortening",
@@ -103,6 +104,8 @@ def validate_story(data: dict[str, Any]) -> None:
     narration = data.get("narration")
     if narration is not None and not isinstance(narration, str):
         raise ValueError("narration must be a string when provided")
+    if data.get("mood", "auto") not in _MOODS:
+        raise ValueError(f"mood must be one of {sorted(_MOODS)}")
     bible = data.get("character_bible", {})
     if not isinstance(bible, dict):
         raise ValueError("character_bible must be an object")

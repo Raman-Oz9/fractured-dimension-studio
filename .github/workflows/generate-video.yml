@@ -22,18 +22,30 @@ on:
         required: true
         type: choice
         options:
+          - am_onyx
           - am_liam
           - am_michael
           - am_adam
           - am_puck
           - bm_fable
           - bm_george
-        default: am_liam
+        default: am_onyx
       narrator_speed:
-        description: Narration speed (1.0 = normal; 1.08 suits the manga pacing)
+        description: Narration speed (1.0 = normal; deep voices read best at 0.95-1.05)
         required: false
         type: string
-        default: "1.08"
+        default: "1.0"
+      voice_depth:
+        description: Extra narrator depth in semitones (0 = natural, 2.5 = deep documentary voice)
+        required: false
+        type: string
+        default: "2.5"
+      mood:
+        description: Soundtrack mood (auto reads the script)
+        required: false
+        type: choice
+        options: [auto, horror, documentary_dark, thriller, mystery, dark_comedy, comedy, epic, sad, wonder]
+        default: auto
       voice_backend:
         description: Narration engine
         required: true
@@ -52,11 +64,13 @@ jobs:
     timeout-minutes: 90
     env:
       VOICE_BACKEND: ${{ inputs.voice_backend || 'kokoro' }}
-      KOKORO_VOICE: ${{ inputs.narrator || 'am_liam' }}
-      KOKORO_SPEED: ${{ inputs.narrator_speed || '1.08' }}
+      KOKORO_VOICE: ${{ inputs.narrator || 'am_onyx' }}
+      KOKORO_SPEED: ${{ inputs.narrator_speed || '1.0' }}
+      VOICE_DEPTH: ${{ inputs.voice_depth || '2.5' }}
+      STORY_MOOD: ${{ inputs.mood == 'auto' && '' || inputs.mood }}
       VOICESTUDIO_BASE_URL: ${{ secrets.VOICESTUDIO_BASE_URL }}
       VOICESTUDIO_API_KEY: ${{ secrets.VOICESTUDIO_API_KEY }}
-      VOICESTUDIO_VOICE: ${{ inputs.narrator || 'am_liam' }}
+      VOICESTUDIO_VOICE: ${{ inputs.narrator || 'am_onyx' }}
       VOICESTUDIO_MODEL: tts-1
       VOICESTUDIO_SPEED: "0.92"
     steps:

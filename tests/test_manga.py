@@ -87,3 +87,39 @@ def test_manga_render_end_to_end(tmp_path, monkeypatch):
     probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", str(out)],
                            check=True, capture_output=True, text=True)
     assert float(probe.stdout) > 3.0
+
+
+def test_every_mood_bed_is_levelled_under_narration():
+    import numpy as np
+
+    for mood in audio.MOODS:
+        bed = audio.music_bed(6.0, mood)
+        rms = float(np.sqrt(np.mean(bed ** 2)))
+        assert 0.015 < rms < 0.035, mood
+
+
+def test_mood_detection_reads_the_script():
+    assert audio.detect_mood("A cursed ghost haunts the grave in a terrifying nightmare.") == "horror"
+    assert audio.detect_mood("Nothing special here.") == "mystery"
+
+
+def test_narration_flows_without_long_gaps():
+    story = {"shots": [{"narration": "One, two"}, {"narration": "three."}, {"narration": "Four."}]}
+    timeline = manga.plan_timeline(story, [1.0, 1.0, 1.0])
+    gaps = [timeline[i]["duration"] - 1.0 for i in (1,)]
+    assert gaps[0] <= 0.2
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="FFmpeg required")
+def test_deepen_voice_keeps_length_and_lowers_pitch(tmp_path):
+    import numpy as np
+
+    from fractured_dimension.voice import _write_wav, deepen_voice
+
+    t = np.arange(24000) / 24000
+    path = _write_wav(tmp_path / "v.wav", 0.4 * np.sin(2 * np.pi * 200 * t))
+    deepen_voice(path, 3.0)
+    data = audio.read_wav(path)
+    assert abs(data.size - 24000) < 600
+    spectrum = np.abs(np.fft.rfft(data))
+    assert np.argmax(spectrum) * 24000 / data.size < 190

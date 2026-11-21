@@ -29,8 +29,9 @@ FRAME_MARGIN = 16
 FRAME_LINE = 6
 PAPER = (252, 250, 244)
 INK = (12, 12, 16)
-DEFAULT_LEAD = 0.30
-DEFAULT_TAIL = 0.45
+FIRST_LEAD = 0.5
+SENTENCE_GAP = 0.16  # narration flows: lines run nearly back to back
+CLAUSE_GAP = 0.07
 FINAL_TAIL = 1.4
 
 # keyframes: at, zoom, x, y [, roll degrees]. x/y anchor the crop inside the panel
@@ -382,8 +383,10 @@ def plan_timeline(story: dict[str, Any], speeches: list[float]) -> list[dict[str
     cursor = 0.0
     shots = story["shots"]
     for index, (shot, speech) in enumerate(zip(shots, speeches)):
-        lead = float(shot.get("lead", DEFAULT_LEAD))
-        tail = float(shot.get("pause", FINAL_TAIL if index == len(shots) - 1 else DEFAULT_TAIL))
+        lead = float(shot.get("lead", FIRST_LEAD if index == 0 else 0.0))
+        ends_sentence = str(shot["narration"]).rstrip().endswith((".", "!", "?"))
+        flow_gap = SENTENCE_GAP if ends_sentence else CLAUSE_GAP
+        tail = float(shot.get("pause", FINAL_TAIL if index == len(shots) - 1 else flow_gap))
         duration = max(float(shot.get("min_duration", 0)), lead + speech + tail)
         timeline.append({
             "index": index + 1, "start": cursor, "duration": duration, "lead": lead,
@@ -393,7 +396,20 @@ def plan_timeline(story: dict[str, Any], speeches: list[float]) -> list[dict[str
     return timeline
 
 
-def build_sfx(story: dict[str, Any], timeline: list[dict[str, Any]]) -> list[tuple[float, str, float]]:
+def resolve_mood(story: dict[str, Any]) -> str:
+    """STORY_MOOD env > story['mood'] > keyword detection from the narration."""
+    import os
+
+    choice = (os.environ.get("STORY_MOOD") or story.get("mood") or "auto").strip().lower()
+    if choice in ("", "auto"):
+        text = " ".join(str(s.get("narration", "")) for s in story["shots"])
+        return sound.detect_mood(text)
+    if choice not in sound.MOODS:
+        raise ValueError(f"Unknown mood '{choice}'. Choose from {', '.join(sound.MOODS)}")
+    return choice
+
+
+def build_sfx(story: dict[str, Any], timeline: list[dict[str, Any]], mood: str = "mystery") -> list[tuple[float, str, float]]:
     events: list[tuple[float, str, float]] = []
     for shot, entry in zip(story["shots"], timeline):
         start = entry["start"]
@@ -402,7 +418,9 @@ def build_sfx(story: dict[str, Any], timeline: list[dict[str, Any]]) -> list[tup
         if transition == "whip" or shot.get("camera", "").startswith("whip"):
             events.append((max(0.0, start - 0.08), "whoosh", 0.8))
         if "impact" in fx:
-            events.append((start, "impact", 1.0))
+            if mood in sound.TENSE_MOODS and start >= 1.2:
+                events.append((start - 1.2, "riser", 0.55))  # tension builds into the hit
+            events.append((start, "stinger" if mood == "horror" else "impact", 1.0))
         for spec in shot.get("sfx", []):
             events.append((start + float(spec.get("at", 0.0)), spec["name"], float(spec.get("gain", 1.0))))
         fx_text = shot.get("sfx_text")
@@ -480,6 +498,8 @@ def render_manga_story(story: dict[str, Any], output: str | Path) -> Path:
         clips = [sound.read_wav(p) for p in voice_paths]
         speeches = [clip.size / sound.RATE for clip in clips]
         timeline = plan_timeline(story, speeches)
+        mood = resolve_mood(story)
+        print(f"Soundtrack mood: {mood}")
         timeline[-1]["fade_out"] = bool(options.get("fade_out", True))
         total = timeline[-1]["start"] + timeline[-1]["duration"]
         print(f"Manga timeline: {len(shots)} shots, {total:.1f}s, speech {sum(speeches):.1f}s")
@@ -487,8 +507,9 @@ def render_manga_story(story: dict[str, Any], output: str | Path) -> Path:
         mix = sound.mix_soundtrack(
             total,
             [(e["speech_start"], c) for e, c in zip(timeline, clips)],
-            build_sfx(story, timeline),
+            build_sfx(story, timeline, mood),
             music=bool(options.get("music", True)),
+            mood=mood,
         )
         mix_path = sound.write_wav(tmp / "mix.wav", mix)
         caption_path = tmp / "captions.ass"

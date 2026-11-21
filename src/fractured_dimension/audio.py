@@ -130,36 +130,292 @@ SFX = {
 }
 
 
-def music_bed(seconds: float, seed: int = 7) -> np.ndarray:
-    """A dark, slow ambient pulse: low drone, drifting fifths and a soft ticking clock."""
-    rng = np.random.default_rng(seed)
+def riser(seconds: float = 1.3) -> np.ndarray:
+    """Tension riser: rising glass tone under swelling noise, resolves into the next cut."""
+    rng = np.random.default_rng(9)
+    t = _t(seconds)
+    freq = 220 * (2.0 ** (t / seconds * 2.2))
+    tone = np.sin(2 * np.pi * np.cumsum(freq) / RATE)
+    hiss = _bandpass_noise(rng, seconds, 1500, 7000)
+    env = (t / seconds) ** 2.2
+    return ((0.55 * tone + 0.6 * hiss) * env).astype(np.float32)
+
+
+def stinger(seconds: float = 1.4) -> np.ndarray:
+    """Dissonant horror hit: stacked minor seconds with a long metallic tail."""
     t = _t(seconds)
     out = np.zeros_like(t)
-    # A minor drone with slow tremolo so the bed breathes instead of sitting flat.
-    for freq, gain, lfo in ((55.0, 1.0, 0.11), (82.4, 0.7, 0.17), (110.0, 0.5, 0.13), (164.8, 0.28, 0.21)):
+    for f, g in ((110, 1.0), (116.5, 0.9), (277, 0.5), (293.7, 0.45), (1244, 0.2)):
+        out += g * np.sin(2 * np.pi * f * t)
+    return (out * np.exp(-t * 3.2) * 0.35).astype(np.float32) + impact(seconds)[: t.size] * 0.7
+
+
+SFX["riser"] = riser
+SFX["stinger"] = stinger
+
+
+# ----------------------------------------------------------------------------- mood beds
+# Each bed is synthesized from scratch and mixed far below the narration; the voice
+# pocket EQ and ducking in mix_soundtrack keep it from ever masking the words.
+
+def _lowpass(x: np.ndarray, cutoff: float) -> np.ndarray:
+    spectrum = np.fft.rfft(x)
+    freqs = np.fft.rfftfreq(x.size, 1 / RATE)
+    spectrum *= 1.0 / (1.0 + (freqs / cutoff) ** 4)
+    return np.fft.irfft(spectrum, x.size)
+
+
+def _place(out: np.ndarray, sound: np.ndarray, start: float, gain: float = 1.0) -> None:
+    begin = int(start * RATE)
+    if begin >= out.size:
+        return
+    end = min(out.size, begin + sound.size)
+    out[begin:end] += sound[: end - begin] * gain
+
+
+def _pluck(freq: float, seconds: float, decay: float, bright: float = 0.3) -> np.ndarray:
+    t = _t(seconds)
+    tone = np.sin(2 * np.pi * freq * t) + bright * np.sin(2 * np.pi * freq * 2 * t) + bright * 0.4 * np.sin(2 * np.pi * freq * 3 * t)
+    return (tone * np.exp(-t * decay)).astype(np.float32)
+
+
+def _swell(freq: float, seconds: float, harmonics: int = 6) -> np.ndarray:
+    """Slow bowed-string style swell: stacked harmonics under a hann envelope."""
+    t = _t(seconds)
+    tone = sum(np.sin(2 * np.pi * freq * k * t + 0.3 * k) / k for k in range(1, harmonics + 1))
+    vibrato = 1 + 0.004 * np.sin(2 * np.pi * 5.2 * t)
+    tone = sum(np.sin(2 * np.pi * freq * k * t * vibrato) / k for k in range(1, harmonics + 1))
+    return (tone * np.hanning(t.size)).astype(np.float32)
+
+
+def _wind(seconds: float, rng: np.random.Generator, level: float = 1.0) -> np.ndarray:
+    n = _bandpass_noise(rng, seconds, 180, 1100)
+    t = _t(seconds)
+    gust = 0.35 + 0.65 * (0.5 + 0.5 * np.sin(2 * np.pi * 0.07 * t + rng.uniform(0, 6.28))) ** 2
+    return (n * gust * level).astype(np.float32)
+
+
+def _drone(t: np.ndarray, freqs: tuple[tuple[float, float, float], ...], rng: np.random.Generator) -> np.ndarray:
+    out = np.zeros_like(t)
+    for freq, gain, lfo in freqs:
         wobble = 0.65 + 0.35 * np.sin(2 * np.pi * lfo * t + rng.uniform(0, 6.28))
         out += gain * wobble * np.sin(2 * np.pi * freq * t + 0.4 * np.sin(2 * np.pi * 0.05 * t))
-    # Sparse pentatonic plucks: curious, a little mischievous, never a lullaby.
+    return out
+
+
+def _bed_mystery(seconds: float, rng: np.random.Generator) -> np.ndarray:
+    t = _t(seconds)
+    out = _drone(t, ((55.0, 1.0, 0.11), (82.4, 0.7, 0.17), (110.0, 0.5, 0.13), (164.8, 0.28, 0.21)), rng)
     notes = (220.0, 261.6, 329.6, 392.0, 440.0)
-    step = 0.9
-    for i in range(int(seconds / step)):
+    for i in range(int(seconds / 0.9)):
         if rng.random() < 0.55:
-            start = int(i * step * RATE)
-            length = int(0.9 * RATE)
-            tt = np.arange(length) / RATE
-            pluck = np.sin(2 * np.pi * rng.choice(notes) * tt) * np.exp(-tt * 5.5) * 0.35
-            end = min(out.size, start + length)
-            out[start:end] += pluck[: end - start]
-    # Soft clock tick on the beat.
+            _place(out, _pluck(float(rng.choice(notes)), 0.9, 5.5, 0.0) * 0.35, i * 0.9)
     for i in range(int(seconds / 0.45)):
-        start = int(i * 0.45 * RATE)
-        length = int(0.03 * RATE)
-        end = min(out.size, start + length)
-        out[start:end] += (rng.standard_normal(end - start) * np.exp(-np.arange(end - start) / (0.006 * RATE)) * 0.08)
-    fade = np.minimum(1.0, np.minimum(t / 1.5, (seconds - t) / 2.0))
-    out *= np.clip(fade, 0, 1)
+        _place(out, rng.standard_normal(int(0.03 * RATE)).astype(np.float32) * np.exp(-np.arange(int(0.03 * RATE)) / (0.006 * RATE)) * 0.08, i * 0.45)
+    return out
+
+
+def _bed_horror(seconds: float, rng: np.random.Generator) -> np.ndarray:
+    """Cold dissonant sub drone, slow heartbeat, glassy whistles, wind and distant scrapes."""
+    t = _t(seconds)
+    out = _drone(t, ((41.2, 1.0, 0.05), (43.65, 0.9, 0.07), (65.4, 0.45, 0.09), (69.3, 0.4, 0.06)), rng) * 1.2
+    out += _wind(seconds, rng, 0.9)
+    beat = heartbeat()
+    for i in range(int(seconds / 1.15)):
+        _place(out, beat, i * 1.15, 0.55)
+    cursor = 2.0
+    while cursor < seconds - 2:
+        length = rng.uniform(2.0, 3.6)
+        tt = _t(length)
+        base = float(rng.choice((1865.0, 2093.0, 2489.0)))
+        glass = (np.sin(2 * np.pi * base * tt) + np.sin(2 * np.pi * base * 1.0595 * tt)) * np.hanning(tt.size)
+        glass *= 0.5 + 0.5 * np.sin(2 * np.pi * 6.0 * tt)
+        _place(out, glass.astype(np.float32), cursor, 0.06)
+        cursor += rng.uniform(4.0, 7.5)
+    cursor = 5.0
+    while cursor < seconds - 2:
+        scrape = _bandpass_noise(rng, 1.4, 2500, 6500) * np.hanning(int(1.4 * RATE))
+        _place(out, scrape.astype(np.float32), cursor, 0.08)
+        cursor += rng.uniform(9.0, 16.0)
+    cursor = 8.0
+    while cursor < seconds - 3:
+        _place(out, riser(2.4) * 0.35, cursor)
+        cursor += rng.uniform(13.0, 20.0)
+    return out
+
+
+def _bed_documentary_dark(seconds: float, rng: np.random.Generator) -> np.ndarray:
+    """Chilling documentary: sustained low strings, sparse minor piano and cold air."""
+    t = _t(seconds)
+    out = _drone(t, ((36.7, 1.0, 0.04), (55.0, 0.8, 0.06), (73.4, 0.5, 0.08)), rng) * 1.0
+    out += _wind(seconds, rng, 0.55)
+    roots = (73.4, 87.3, 98.0, 65.4)  # D2 F2 G2 C2: slow, unresolved
+    cursor, idx = 0.0, 0
+    while cursor < seconds:
+        length = rng.uniform(6.5, 9.0)
+        root = roots[idx % len(roots)]
+        _place(out, _swell(root, length) * 1.1, cursor)
+        _place(out, _swell(root * 1.5, length * 0.9, 4) * 0.55, cursor + 0.6)
+        cursor += length * 0.7
+        idx += 1
+    for note in (293.7, 349.2, 440.0, 523.3, 587.3):
+        pass
+    cursor = 3.0
+    while cursor < seconds - 2:
+        note = float(rng.choice((293.7, 349.2, 440.0, 523.3, 587.3)))
+        _place(out, _pluck(note, 3.0, 1.6, 0.5) * 0.28, cursor)
+        cursor += rng.uniform(2.4, 5.5)
+    beat = heartbeat()
+    for i in range(int(seconds / 3.4)):
+        _place(out, beat, 1.0 + i * 3.4, 0.4)
+    return out
+
+
+def _bed_thriller(seconds: float, rng: np.random.Generator) -> np.ndarray:
+    """Driving low ostinato that tightens over time, ticking hats and rising tension."""
+    t = _t(seconds)
+    step = 0.25
+    out = np.zeros_like(t)
+    pattern = (55.0, 55.0, 65.4, 55.0, 55.0, 73.4, 55.0, 61.7)
+    progress = np.linspace(0, 1, t.size)
+    for i in range(int(seconds / step)):
+        f = pattern[i % len(pattern)]
+        length = int(0.22 * RATE)
+        tt = np.arange(length) / RATE
+        saw = 2 * ((f * tt) % 1) - 1
+        note = _lowpass(saw.astype(np.float32), 500 + 2200 * min(1.0, i * step / seconds)) * np.exp(-tt * 9)
+        _place(out, note.astype(np.float32), i * step, 0.9)
+        if i % 2 == 1:
+            hat = rng.standard_normal(int(0.04 * RATE)).astype(np.float32)
+            _place(out, hat * np.exp(-np.arange(hat.size) / (0.008 * RATE)) * 0.12 * (0.5 + progress[min(t.size - 1, int(i * step * RATE))]), i * step)
+    cursor = 14.0
+    while cursor < seconds - 2:
+        _place(out, riser(2.0) * 0.4, cursor - 2.0)
+        _place(out, impact(0.9) * 0.4, cursor)
+        cursor += 16.0
+    out += _drone(t, ((55.0, 0.6, 0.1),), rng)
+    return out
+
+
+def _bed_dark_comedy(seconds: float, rng: np.random.Generator) -> np.ndarray:
+    """Sneaky pizzicato walking bass and mischievous plucks over a low drone."""
+    t = _t(seconds)
+    out = _drone(t, ((55.0, 0.5, 0.1),), rng)
+    beat = 0.6
+    walk = (110.0, 130.8, 146.8, 164.8, 146.8, 130.8, 123.5, 110.0)
+    for i in range(int(seconds / beat)):
+        _place(out, _pluck(walk[i % len(walk)], 0.5, 7.0, 0.5) * 0.9, i * beat)
+        if rng.random() < 0.55:
+            _place(out, _pluck(float(rng.choice((440.0, 523.3, 622.3, 659.3))), 0.4, 9.0, 0.2) * 0.35, i * beat + beat / 2)
+    for i in range(int(seconds / 2.4)):
+        _place(out, rng.standard_normal(int(0.03 * RATE)).astype(np.float32) * np.exp(-np.arange(int(0.03 * RATE)) / (0.006 * RATE)) * 0.1, i * 2.4 + 1.2)
+    return out
+
+
+def _bed_comedy(seconds: float, rng: np.random.Generator) -> np.ndarray:
+    t = _t(seconds)
+    out = np.zeros_like(t)
+    beat = 0.3
+    scale = (261.6, 293.7, 329.6, 392.0, 440.0, 523.3)
+    bass = (130.8, 130.8, 196.0, 174.6)
+    for i in range(int(seconds / beat)):
+        if i % 2 == 0:
+            _place(out, _pluck(bass[(i // 2) % 4], 0.35, 8.0, 0.4) * 0.8, i * beat)
+        if rng.random() < 0.6:
+            _place(out, _pluck(float(rng.choice(scale)), 0.3, 11.0, 0.2) * 0.45, i * beat)
+    return out
+
+
+def _bed_epic(seconds: float, rng: np.random.Generator) -> np.ndarray:
+    t = _t(seconds)
+    out = _drone(t, ((36.7, 1.0, 0.05), (73.4, 0.6, 0.07)), rng)
+    for i in range(int(seconds / 1.2)):
+        _place(out, impact(0.8) * (0.9 if i % 4 == 0 else 0.45), i * 1.2)
+    cursor, chords = 0.0, ((146.8, 220.0), (130.8, 196.0), (116.5, 174.6), (130.8, 196.0))
+    idx = 0
+    while cursor < seconds:
+        for note in chords[idx % 4]:
+            _place(out, _swell(note, 5.0, 8) * 0.55, cursor)
+        cursor += 4.2
+        idx += 1
+    return out
+
+
+def _bed_sad(seconds: float, rng: np.random.Generator) -> np.ndarray:
+    t = _t(seconds)
+    out = _drone(t, ((110.0, 0.8, 0.06), (164.8, 0.6, 0.08), (220.0, 0.4, 0.05), (329.6, 0.25, 0.07)), rng) * 0.8
+    cursor = 1.0
+    notes = (440.0, 523.3, 392.0, 349.2, 329.6)
+    while cursor < seconds - 1:
+        _place(out, _pluck(float(rng.choice(notes)), 3.5, 1.4, 0.35) * 0.5, cursor)
+        cursor += rng.uniform(1.8, 3.2)
+    return out
+
+
+def _bed_wonder(seconds: float, rng: np.random.Generator) -> np.ndarray:
+    t = _t(seconds)
+    out = _drone(t, ((110.0, 0.7, 0.05), (220.0, 0.6, 0.07), (329.6, 0.5, 0.09), (493.9, 0.35, 0.06), (740.0, 0.2, 0.11)), rng)
+    out += _wind(seconds, rng, 0.2)
+    cursor = 0.5
+    arp = (659.3, 784.0, 987.8, 1174.7, 1318.5)
+    while cursor < seconds - 1:
+        _place(out, _pluck(float(rng.choice(arp)), 2.0, 2.6, 0.15) * 0.3, cursor)
+        cursor += rng.uniform(0.5, 1.4)
+    return out
+
+
+BEDS = {
+    "mystery": _bed_mystery, "horror": _bed_horror, "documentary_dark": _bed_documentary_dark,
+    "thriller": _bed_thriller, "dark_comedy": _bed_dark_comedy, "comedy": _bed_comedy,
+    "epic": _bed_epic, "sad": _bed_sad, "wonder": _bed_wonder,
+}
+MOODS = tuple(BEDS)
+# Relative loudness per mood (horror stays near-subliminal; lively beds sit a touch lower).
+MOOD_GAIN = {"horror": 1.0, "documentary_dark": 1.05, "thriller": 0.95, "mystery": 1.0, "dark_comedy": 0.9,
+             "comedy": 0.8, "epic": 1.05, "sad": 0.95, "wonder": 0.95}
+TENSE_MOODS = {"horror", "thriller", "documentary_dark"}
+
+_MOOD_WORDS = {
+    "horror": ("ghost", "haunt", "blood", "scream", "corpse", "demon", "curse", "nightmare", "terrif", "scary",
+               "horror", "creep", "grave", "evil", "murder", "killer", "monster", "sinister", "eerie", "possessed", "cursed"),
+    "thriller": ("chase", "escape", "heist", "hunt", "spy", "explosion", "trap", "danger", "countdown", "panic", "fled", "pursuit", "assassin"),
+    "documentary_dark": ("mystery", "mysteries", "unexplained", "abyss", "deep sea", "unknown", "disappear", "vanish", "ancient",
+                         "investigat", "unsolved", "cold case", "void", "dark side", "lost"),
+    "dark_comedy": ("magician", "trick", "shadow", "assistant", "punchline"),
+    "comedy": ("funny", "joke", "clown", "silly", "laugh", "prank", "hilarious"),
+    "epic": ("war", "battle", "empire", "legend", "hero", "kingdom", "army", "conquer"),
+    "sad": ("grief", "lonely", "tears", "farewell", "funeral", "heartbreak", "orphan", "lost love"),
+    "wonder": ("galaxy", "universe", "stars", "ocean", "wonder", "planet", "nebula", "aurora", "coral"),
+}
+
+
+def detect_mood(text: str) -> str:
+    """Pick a soundtrack mood from the script's wording; defaults to a curious 'mystery' bed."""
+    lowered = text.lower()
+    scores = {m: sum(lowered.count(w) for w in words) for m, words in _MOOD_WORDS.items()}
+    best = max(scores, key=lambda m: scores[m])
+    return best if scores[best] >= 2 else "mystery"
+
+
+def _carve_voice_pocket(bed: np.ndarray) -> np.ndarray:
+    """Dip the bed 6 dB across the speech band so narration always sits on top of it."""
+    spectrum = np.fft.rfft(bed)
+    freqs = np.fft.rfftfreq(bed.size, 1 / RATE)
+    gain = np.interp(freqs, [0, 150, 280, 3200, 5200, RATE / 2], [1.0, 1.0, 0.5, 0.5, 1.0, 0.7])
+    return np.fft.irfft(spectrum * gain, bed.size).astype(np.float32)
+
+
+def music_bed(seconds: float, mood: str = "mystery", seed: int = 7) -> np.ndarray:
+    """Synthesize the mood's background bed, voice-pocketed and levelled well under narration."""
+    if mood not in BEDS:
+        raise ValueError(f"Unknown mood '{mood}'. Choose from {', '.join(MOODS)}")
+    rng = np.random.default_rng(seed)
+    out = BEDS[mood](seconds, rng).astype(np.float32)
+    t = _t(seconds)[: out.size]
+    fade = np.minimum(1.0, np.minimum(t / 2.0, (seconds - t) / 2.5))
+    out = _carve_voice_pocket(out * np.clip(fade, 0, 1))
     rms = float(np.sqrt(np.mean(out ** 2))) or 1.0
-    return (out / rms * MUSIC_RMS).astype(np.float32)
+    return (out / rms * MUSIC_RMS * MOOD_GAIN[mood]).astype(np.float32)
 
 
 def normalise_voice(audio: np.ndarray) -> np.ndarray:
@@ -171,7 +427,7 @@ def normalise_voice(audio: np.ndarray) -> np.ndarray:
     return audio * gain
 
 
-def duck_envelope(voice: np.ndarray, floor: float = 0.55) -> np.ndarray:
+def duck_envelope(voice: np.ndarray, floor: float = 0.5) -> np.ndarray:
     """Music gain that dips while someone is speaking and recovers in the gaps."""
     window = int(0.18 * RATE)
     smooth = np.convolve(np.abs(voice), np.ones(window) / window, mode="same")
@@ -185,6 +441,7 @@ def mix_soundtrack(
     voice_clips: list[tuple[float, np.ndarray]],
     sfx_events: list[tuple[float, str, float]],
     music: bool = True,
+    mood: str = "mystery",
 ) -> np.ndarray:
     """Build the full mix: levelled narration, ducked music bed and timed sound effects."""
     total = int((total_seconds + 0.2) * RATE)
@@ -196,7 +453,7 @@ def mix_soundtrack(
             voice[begin:end] += normalise_voice(clip)[: end - begin]
     mix = voice.copy()
     if music:
-        bed = music_bed(total_seconds + 0.2)[:total]
+        bed = music_bed(total_seconds + 0.2, mood)[:total]
         mix[: bed.size] += bed * duck_envelope(voice)[: bed.size]
     for when, name, gain in sfx_events:
         if name not in SFX:

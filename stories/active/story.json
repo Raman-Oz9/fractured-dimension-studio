@@ -1,8 +1,9 @@
 {
   "title": "The Shadow That Quit",
   "episode_id": "FD-01",
-  "render_revision": 12,
+  "render_revision": 13,
   "render_style": "manga",
+  "mood": "dark_comedy",
   "manga": {
     "tone": true,
     "grain": true,
@@ -279,8 +280,7 @@
       ],
       "fx": [
         "gloom"
-      ],
-      "pause": 0.6
+      ]
     },
     {
       "image": "images/shot-09.png",
@@ -300,7 +300,6 @@
         0.5,
         0.5
       ],
-      "lead": 0.5,
       "sfx": [
         {
           "name": "heartbeat",
@@ -409,7 +408,6 @@
         0.5,
         0.5
       ],
-      "lead": 0.4,
       "sfx": [
         {
           "name": "crowd",
@@ -553,7 +551,6 @@
       "fx": [
         "flash"
       ],
-      "lead": 0.4,
       "sfx": [
         {
           "name": "crowd",

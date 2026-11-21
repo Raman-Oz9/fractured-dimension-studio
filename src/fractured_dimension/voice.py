@@ -115,6 +115,33 @@ def _test_tone_line(text: str, output: Path) -> Path:
     return _write_wav(output, np.concatenate(parts), rate)
 
 
+def deepen_voice(path: Path, semitones: float) -> Path:
+    """Lower the narrator's pitch and formants, add chest warmth and gentle compression.
+
+    Resampling down makes the voice sound bigger (a longer vocal tract); atempo restores the
+    original pacing so the line keeps its length.
+    """
+    import shutil
+    import subprocess
+
+    if semitones <= 0 or shutil.which("ffmpeg") is None:
+        return path
+    factor = 2 ** (-semitones / 12)
+    tmp = path.with_suffix(".deep.wav")
+    chain = (
+        f"asetrate=24000*{factor:.5f},aresample=24000,atempo={1 / factor:.5f},"
+        "equalizer=f=105:t=h:w=160:g=4,equalizer=f=250:t=q:w=1:g=1.5,equalizer=f=7500:t=h:w=2000:g=-3,"
+        "acompressor=threshold=-21dB:ratio=3:attack=6:release=90:makeup=2"
+    )
+    subprocess.run(
+        ["ffmpeg", "-y", "-v", "error", "-i", str(path), "-af", chain, "-ac", "1", "-ar", "24000",
+         "-c:a", "pcm_s16le", str(tmp)],
+        check=True, capture_output=True,
+    )
+    tmp.replace(path)
+    return path
+
+
 def generate_voice_lines(lines: list[str], out_dir: str | Path, prefix: str = "line") -> list[Path]:
     """Synthesize one WAV per narration line, reusing a single Kokoro pipeline.
 
@@ -158,6 +185,7 @@ def generate_voice_lines(lines: list[str], out_dir: str | Path, prefix: str = "l
         if not chunks:
             raise RuntimeError(f"Kokoro returned no audio for line: {text[:60]!r}")
         _write_wav(path, _trim_silence(np.concatenate(chunks)))
+        deepen_voice(path, float(os.environ.get("VOICE_DEPTH", "0") or 0))
     return paths
 
 
