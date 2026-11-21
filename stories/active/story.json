@@ -1,7 +1,7 @@
 {
   "title": "The Shadow That Quit",
   "episode_id": "FD-01",
-  "render_revision": 9,
+  "render_revision": 10,
   "render_style": "manga",
   "manga": {
     "tone": true,
@@ -28,7 +28,7 @@
       "visual_identity": "The living shadow: Boro's living shadow, tall solid-black ink silhouette in Boro's crooked hat and coat outline, long thin limbs, glowing pure-white slit eyes, thin sharp grin, wisps of ink smoke. Always the same design in every panel: solid black body, same hat and coat outline, same white eyes.",
       "prompt_tag": "Boro's living shadow, tall solid-black ink silhouette in Boro's crooked hat and coat outline, long thin limbs, glowing pure-white slit eyes, thin sharp grin, wisps of ink smoke",
       "reference_image": "images/character-shadow-reference.png",
-      "reference_prompt": "Manga character design sheet for the living shadow: full-body three-quarter standing view plus a separate face portrait inset showing its glowing white slit eyes and sharp grin, plain white background, solid ink black body with thin white rim lines."
+      "reference_prompt": "ONE single full-body figure only, centred on a plain white background: a living shadow that is a flat solid-black ink silhouette with no clothing detail, no human face and no skin, wearing the outline of a crooked top hat and long coat, with only two glowing white slit eyes and a thin white grin. No inset, no extra views, no text, no panels."
     },
     "MARKET": {
       "kind": "location",
@@ -108,7 +108,7 @@
     {
       "image": "images/shot-03.png",
       "duration": 2.5,
-      "camera": "pan_right",
+      "camera": "push_in",
       "character_ids": [
         "BORO",
         "SHADOW"
@@ -119,15 +119,15 @@
       "camera_path": [
         {
           "at": 0,
-          "zoom": 1.25,
-          "x": 0,
-          "y": 1
+          "zoom": 1.45,
+          "x": 0.339,
+          "y": 0
         },
         {
           "at": 1,
-          "zoom": 1.5,
-          "x": 1,
-          "y": 0.08
+          "zoom": 1.9,
+          "x": 0.753,
+          "y": 0
         }
       ],
       "sfx": [
@@ -539,7 +539,7 @@
       ]
     },
     {
-      "image": "images/shot-19.png",
+      "image": "images/shot-13.png",
       "duration": 2.5,
       "camera": "pull_out",
       "character_ids": [
@@ -576,7 +576,7 @@
       }
     },
     {
-      "image": "images/shot-20.png",
+      "image": "images/shot-18.png",
       "duration": 2.5,
       "camera": "push_in",
       "character_ids": [
