@@ -510,7 +510,10 @@ def render_manga_story(story: dict[str, Any], output: str | Path) -> Path:
             "-af", "highpass=f=60,loudnorm=I=-16:TP=-1.5:LRA=11",
             "-t", f"{total:.3f}", "-movflags", "+faststart", str(out),
         ]
-        proc = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        command[1:1] = ["-loglevel", "error"]
+        log_path = tmp / "ffmpeg.log"
+        log_file = log_path.open("wb")
+        proc = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=log_file)
         frame_counter = 0
         try:
             for shot, entry in zip(shots, timeline):
@@ -531,9 +534,10 @@ def render_manga_story(story: dict[str, Any], output: str | Path) -> Path:
                     proc.stdin.write(rgb.tobytes())
                     frame_counter += 1
             proc.stdin.close()
-            _, err = proc.communicate()
+            proc.wait()
+            log_file.close()
             if proc.returncode:
-                raise RuntimeError("FFmpeg manga render failed:\n" + err.decode("utf-8", "replace")[-1500:])
+                raise RuntimeError("FFmpeg manga render failed:\n" + log_path.read_text(errors="replace")[-1500:])
         except Exception:
             if proc.poll() is None:
                 proc.kill()
