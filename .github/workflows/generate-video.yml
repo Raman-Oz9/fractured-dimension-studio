@@ -22,9 +22,18 @@ on:
         required: true
         type: choice
         options:
+          - am_liam
+          - am_michael
           - am_adam
+          - am_puck
+          - bm_fable
           - bm_george
-        default: am_adam
+        default: am_liam
+      narrator_speed:
+        description: Narration speed (1.0 = normal; 1.08 suits the manga pacing)
+        required: false
+        type: string
+        default: "1.08"
       voice_backend:
         description: Narration engine
         required: true
@@ -35,7 +44,7 @@ on:
         default: kokoro
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate-and-render:
@@ -43,11 +52,11 @@ jobs:
     timeout-minutes: 90
     env:
       VOICE_BACKEND: ${{ inputs.voice_backend || 'kokoro' }}
-      KOKORO_VOICE: ${{ inputs.narrator || 'am_adam' }}
-      KOKORO_SPEED: "0.94"
+      KOKORO_VOICE: ${{ inputs.narrator || 'am_liam' }}
+      KOKORO_SPEED: ${{ inputs.narrator_speed || '1.08' }}
       VOICESTUDIO_BASE_URL: ${{ secrets.VOICESTUDIO_BASE_URL }}
       VOICESTUDIO_API_KEY: ${{ secrets.VOICESTUDIO_API_KEY }}
-      VOICESTUDIO_VOICE: ${{ inputs.narrator || 'am_adam' }}
+      VOICESTUDIO_VOICE: ${{ inputs.narrator || 'am_liam' }}
       VOICESTUDIO_MODEL: tts-1
       VOICESTUDIO_SPEED: "0.92"
     steps:
@@ -110,6 +119,15 @@ jobs:
             fractured-dimension generate "$STORY_PATH"
           fi
 
+      - name: Check script-to-picture sync
+        run: |
+          python -c "
+          import sys
+          from fractured_dimension.project import load_story, lint_sync
+          warnings = lint_sync(load_story('$STORY_PATH'))
+          [print('::warning::' + w) for w in warnings]
+          "
+
       - name: Render vertical video with narration
         run: fractured-dimension render "$STORY_PATH" --output output/fractured-dimension-short.mp4
 
@@ -129,3 +147,20 @@ jobs:
             stories/active/generation-report.json
             stories/active/story.json
           if-no-files-found: ignore
+
+      - name: Publish test render to the test-renders branch (never uploads to YouTube)
+        if: always()
+        run: |
+          set -e
+          D="$(dirname "$STORY_PATH")"
+          rm -rf /tmp/pub && mkdir -p /tmp/pub/images
+          cp output/fractured-dimension-short.mp4 output/fractured-dimension-short.timeline.json /tmp/pub/ 2>/dev/null || true
+          cp "$D"/images/*.png /tmp/pub/images/ 2>/dev/null || true
+          cp "$D"/generation-report.json /tmp/pub/ 2>/dev/null || true
+          cd /tmp/pub
+          git init -q -b test-renders
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Test render ${GITHUB_SHA::7}" || exit 0
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" test-renders

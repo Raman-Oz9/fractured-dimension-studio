@@ -4,8 +4,94 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from pathlib import Path
 from typing import Any
+
+
+_CLASSIC_MOVES = {"push_in", "pull_out", "pan_left", "pan_right", "hold"}
+_MANGA_MOVES = {
+    "snap_in", "crash_in", "whip_left", "whip_right", "tilt_up", "tilt_down",
+    "shake_hold", "dutch_push", "drift_roll",
+}
+_FX = {"speed_lines", "focus_lines", "impact", "gloom", "flash"}
+_TRANSITIONS = {"cut", "whip", "flash", "dip"}
+_EASES = {"smooth", "snap", "linear", "in"}
+_SFX = {"whoosh", "whoosh_back", "impact", "chime", "coin", "crowd", "heartbeat"}
+ANGLES = {
+    "eye": "eye-level medium shot",
+    "low": "dramatic low-angle shot looking up, strong foreshortening",
+    "high": "high-angle shot looking down",
+    "birdseye": "bird's-eye view from directly above, panoramic and graphic",
+    "worm": "extreme worm's-eye view from the ground, towering subjects",
+    "closeup": "tight close-up on the face and eyes",
+    "extreme_closeup": "extreme close-up on a single detail, eyes or hands, filling the frame",
+    "wide": "very wide establishing shot with deep layered perspective",
+    "over_shoulder": "over-the-shoulder shot with a foreground silhouette",
+    "dutch": "tilted dutch-angle composition, unstable and tense",
+}
+
+
+def _validate_manga_shot(index: int, shot: dict[str, Any]) -> None:
+    narration = shot.get("narration")
+    if not isinstance(narration, str) or not narration.strip():
+        raise ValueError(f"Shot {index} needs its own non-empty narration line in manga mode")
+    fx = shot.get("fx", [])
+    if not isinstance(fx, list) or any(item not in _FX for item in fx):
+        raise ValueError(f"Shot {index} fx must be a list drawn from {sorted(_FX)}")
+    if shot.get("transition", "cut") not in _TRANSITIONS:
+        raise ValueError(f"Shot {index} has an unsupported transition")
+    if shot.get("ease", "smooth") not in _EASES:
+        raise ValueError(f"Shot {index} has an unsupported ease")
+    if shot.get("angle") is not None and shot["angle"] not in ANGLES:
+        raise ValueError(f"Shot {index} has an unknown angle; use one of {sorted(ANGLES)}")
+    focus = shot.get("focus")
+    if focus is not None and (
+        not isinstance(focus, (list, tuple)) or len(focus) != 2
+        or not all(isinstance(v, (int, float)) and 0 <= v <= 1 for v in focus)
+    ):
+        raise ValueError(f"Shot {index} focus must be [x, y] between 0 and 1")
+    for spec in shot.get("sfx", []):
+        if not isinstance(spec, dict) or spec.get("name") not in _SFX:
+            raise ValueError(f"Shot {index} sfx entries need a name from {sorted(_SFX)}")
+    lettering = shot.get("sfx_text")
+    if lettering is not None and (not isinstance(lettering, dict) or not str(lettering.get("text", "")).strip()):
+        raise ValueError(f"Shot {index} sfx_text needs a text value")
+
+
+_STOPWORDS = {
+    "the", "and", "that", "with", "from", "into", "onto", "this", "then", "than", "his", "her",
+    "its", "their", "they", "them", "was", "were", "has", "had", "have", "for", "but", "not",
+    "all", "one", "out", "now", "just", "still", "every", "never", "only", "very", "been",
+    "like", "over", "under", "after", "before", "while", "when", "where", "what", "who",
+}
+
+
+def lint_sync(data: dict[str, Any]) -> list[str]:
+    """Warn when a shot's picture prompt never mentions things its narration names.
+
+    Narration nouns and verbs should be visible on screen: this flags shots where a word
+    the narrator says (e.g. 'broom', 'coins') has no trace in the image prompt.
+    """
+    warnings: list[str] = []
+    for index, shot in enumerate(data.get("shots", []), start=1):
+        narration = shot.get("narration")
+        prompt = (shot.get("image_prompt") or "").lower()
+        if not narration or not prompt:
+            continue
+        must_show = shot.get("must_show") or [
+            w for w in re.findall(r"[a-z']{5,}", narration.lower()) if w not in _STOPWORDS
+        ]
+        missing = []
+        for word in must_show:
+            stem = word.lower().rstrip("s").rstrip("'")[:5]
+            if stem not in prompt:
+                missing.append(word)
+        if shot.get("must_show") and missing:
+            warnings.append(f"Shot {index}: must_show not in image_prompt: {', '.join(missing)}")
+        elif len(missing) > max(1, len(must_show) * 0.5):
+            warnings.append(f"Shot {index}: narration words absent from picture: {', '.join(missing[:6])}")
+    return warnings
 
 
 def validate_story(data: dict[str, Any]) -> None:
@@ -28,18 +114,24 @@ def validate_story(data: dict[str, Any]) -> None:
                 raise ValueError(f"Shot {index} is missing '{field}'")
         if not isinstance(shot["duration"], (int, float)) or shot["duration"] <= 0:
             raise ValueError(f"Shot {index} duration must be positive")
-        if shot["camera"] not in {"push_in", "pull_out", "pan_left", "pan_right", "hold"}:
+        if shot["camera"] not in _CLASSIC_MOVES | _MANGA_MOVES:
             raise ValueError(f"Shot {index} has an unsupported camera move")
+        if data.get("render_style") == "manga":
+            _validate_manga_shot(index, shot)
         camera_path = shot.get("camera_path")
         if camera_path is not None:
             if not isinstance(camera_path, list) or len(camera_path) < 2:
                 raise ValueError(f"Shot {index} camera_path must contain at least two keyframes")
             previous_at = -1.0
             for keyframe in camera_path:
-                if not isinstance(keyframe, dict) or set(keyframe) != {"at", "zoom", "x", "y"}:
+                if (not isinstance(keyframe, dict) or not {"at", "zoom", "x", "y"} <= set(keyframe)
+                        or not set(keyframe) <= {"at", "zoom", "x", "y", "roll"}):
                     raise ValueError(
-                        f"Shot {index} camera_path keyframes need exactly at, zoom, x and y"
+                        f"Shot {index} camera_path keyframes need exactly at, zoom, x and y (plus optional roll)"
                     )
+                roll = keyframe.get("roll", 0)
+                if not isinstance(roll, (int, float)) or isinstance(roll, bool) or abs(roll) > 12:
+                    raise ValueError(f"Shot {index} camera_path roll must be within +/-12 degrees")
                 values = [keyframe[name] for name in ("at", "zoom", "x", "y")]
                 if any(not isinstance(value, (int, float)) or isinstance(value, bool)
                        or not math.isfinite(value) for value in values):
@@ -47,7 +139,7 @@ def validate_story(data: dict[str, Any]) -> None:
                 at, zoom, x, y = values
                 if not 0 <= at <= 1 or at <= previous_at:
                     raise ValueError(f"Shot {index} camera_path times must increase from 0 to 1")
-                if not 1.0 <= zoom <= 1.6 or not 0 <= x <= 1 or not 0 <= y <= 1:
+                if not 1.0 <= zoom <= 2.4 or not 0 <= x <= 1 or not 0 <= y <= 1:
                     raise ValueError(f"Shot {index} camera_path zoom/anchors are out of range")
                 previous_at = at
             if camera_path[0]["at"] != 0 or camera_path[-1]["at"] != 1:

@@ -1,5 +1,15 @@
 # Fractured Dimension Studio
 
+> **Manga mode (`"render_style": "manga"`)** is the default look of `stories/active/story.json`.
+> Each shot carries its own `narration` line and is cut to exactly the length of that spoken line, so
+> the picture always shows what the narrator is saying. Shots add `angle`, `camera` (incl. `snap_in`,
+> `crash_in`, `whip_left/right`, `tilt_up/down`, `shake_hold`, `dutch_push`, `drift_roll`), optional
+> `camera_path` with `roll`, `fx` (`speed_lines`, `focus_lines`, `impact`, `gloom`, `flash`),
+> `transition` (`cut`, `whip`, `flash`, `dip`), `sfx`, and hand-lettered `sfx_text` (e.g. THUD!).
+> The renderer applies ink levels and screentone, a page border, procedural music and sound effects
+> with ducking, and word-timed captions. Characters and the market are locked with reference sheets.
+> Test renders land on the `test-renders` branch (never uploaded to YouTube).
+
 An automated YouTube Shorts production system built around cinematic graphic-novel stills, expressive camera choreography, Kokoro narration, and FFmpeg rendering.
 
 ## Current pipeline

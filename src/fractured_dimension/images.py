@@ -396,6 +396,16 @@ def _character_prompt(character_id: str, profile: dict, style_lock: str = "") ->
         raise ValueError(
             f"Character '{character_id}' needs visual_identity or description"
         )
+    if profile.get("kind") == "location":
+        parts = [
+            "Create a clean environment reference plate for a recurring story location: one "
+            "establishing view showing its architecture, key props, lighting and mood. No "
+            "people, no lettering.",
+            f"LOCKED LOCATION DESIGN: {identity.strip()}",
+        ]
+        if style_lock:
+            parts.append(f"SERIES STYLE LOCK: {style_lock}")
+        return "\n\n".join(parts)
     parts = [
         "Create a clean character reference sheet for a recurring graphic-novel character. "
         "Show one consistent person in a full-body three-quarter view and a clear face "
@@ -476,12 +486,33 @@ def _prepare_character_references(
     return references
 
 
+PROMPT_LIMIT = 1850  # Cloudflare rejects prompts above 2,048 characters; keep headroom.
+
+_SINGLE_SCENE_RULES = (
+    "ONE finished story scene, not a character sheet, collage, split panel, inset or text. "
+    "Each person has exactly one head, one face, two arms and two legs: no duplicate head, "
+    "floating head, merged bodies or extra limbs. Use the reference only for identity, never its layout."
+)
+
+
+def _shorten(text: str, limit: int) -> str:
+    if len(text) <= limit:
+        return text
+    cut = text[:limit]
+    boundary = max(cut.rfind(". "), cut.rfind("; "), cut.rfind(", "))
+    return (cut[: boundary + 1] if boundary > limit * 0.6 else cut).rstrip()
+
+
 def _shot_prompt(story: dict, shot: dict, index: int) -> str:
-    prompt = shot["image_prompt"].strip()
+    from .project import ANGLES
+
+    scene = shot["image_prompt"].strip()
+    angle = shot.get("angle")
+    if angle in ANGLES:
+        scene = f"{ANGLES[angle][0].upper()}{ANGLES[angle][1:]}. {scene}"
     bible = story.get("character_bible", {})
-    character_ids = shot.get("character_ids", [])
     continuity: list[str] = []
-    for character_id in character_ids:
+    for character_id in shot.get("character_ids", []):
         profile = bible.get(character_id)
         if profile is None:
             raise ValueError(
@@ -490,41 +521,31 @@ def _shot_prompt(story: dict, shot: dict, index: int) -> str:
         if isinstance(profile, str):
             description = profile
         else:
-            description = profile.get("visual_identity") or profile.get("description")
+            description = (
+                profile.get("prompt_tag")
+                or profile.get("visual_identity")
+                or profile.get("description")
+            )
         if not isinstance(description, str) or not description.strip():
             raise ValueError(
                 f"Character '{character_id}' needs visual_identity or description"
             )
         continuity.append(f"{character_id}: {description.strip()}")
 
-    parts = [
-        prompt,
-        "ANATOMY AND SINGLE-SUBJECT QUALITY RULES: each depicted person has exactly "
-        "one head, one face, one neck, one torso, two arms and two legs where visible. "
-        "The head is naturally attached to the neck and shoulders. Keep facial features "
-        "correctly aligned to the same skull and viewing angle. Show one coherent head "
-        "only: no duplicate head, floating head, detached face, side-face overlay, "
-        "second face, extra facial features, merged bodies, extra limbs, malformed "
-        "hands, or mirrored anatomy. Do not show alternate views of the same character "
-        "in a single story frame. Keep the full head inside the frame unless intentionally cropped. "
-        "THIS IS A STORY SCENE, NOT A CHARACTER DESIGN SHEET: create exactly one finished "
-        "cinematic narrative illustration for the described moment. Never create a model "
-        "sheet, turnaround, contact sheet, collage, portrait inset, split panel, expression "
-        "board, sketch page, multiple views, or neutral studio backdrop. Do not copy the "
-        "layout of the supplied character reference; use it only to preserve the character's identity.",
-    ]
+    tail: list[str] = []
     if continuity:
-        parts.append(
-            "CHARACTER CONTINUITY LOCK — depict these same established characters "
-            "without redesigning their face, age, hairstyle, skin tone, body build, "
-            "signature clothing, or distinguishing features: "
-            + " | ".join(continuity)
-            + ". Change only pose, expression, camera angle, and scene action. Do not reinterpret the character or add another version of them."
+        tail.append(
+            "CHARACTER CONTINUITY LOCK, same design in every panel (change only pose, expression, "
+            "angle, action): " + " | ".join(continuity)
         )
     style_lock = story.get("style_lock")
     if isinstance(style_lock, str) and style_lock.strip():
-        parts.append(f"SERIES STYLE LOCK: {style_lock.strip()}")
-    return "\n\n".join(parts)
+        tail.append(f"SERIES STYLE LOCK: {style_lock.strip()}")
+    tail.append(_SINGLE_SCENE_RULES)
+    # The scene is the one part allowed to shrink: locks must survive intact.
+    reserved = sum(len(part) + 2 for part in tail)
+    budget = max(350, PROMPT_LIMIT - reserved)
+    return "\n\n".join([_shorten(scene, budget), *tail])
 
 
 def generate_story_images(story: dict, *, overwrite: bool = False) -> list[Path]:

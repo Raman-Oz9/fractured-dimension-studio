@@ -173,6 +173,10 @@ def _wav_seconds(path: Path) -> float:
 
 
 def render_story(story: dict[str, Any], output: str | Path) -> Path:
+    if story.get("render_style") == "manga":
+        from .manga import render_manga_story
+
+        return render_manga_story(story, output)
     if story.get("render_mode") == "procedural":
         return render_procedural_story(story, output)
     if shutil.which("ffmpeg") is None:
