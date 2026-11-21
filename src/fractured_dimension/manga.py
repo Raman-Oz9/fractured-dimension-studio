@@ -30,8 +30,8 @@ FRAME_LINE = 6
 PAPER = (252, 250, 244)
 INK = (12, 12, 16)
 FIRST_LEAD = 0.5
-SENTENCE_GAP = 0.28  # narration flows: lines run nearly back to back
-CLAUSE_GAP = 0.10
+SENTENCE_GAP = 0.65  # narration flows: lines run nearly back to back
+CLAUSE_GAP = 0.26
 FINAL_TAIL = 1.4
 
 # keyframes: at, zoom, x, y [, roll degrees]. x/y anchor the crop inside the panel
@@ -410,21 +410,22 @@ def resolve_mood(story: dict[str, Any]) -> str:
 
 
 def build_sfx(story: dict[str, Any], timeline: list[dict[str, Any]], mood: str = "mystery") -> list[tuple[float, str, float]]:
+    """Timed sound effects. Tense moods stay sparse: a few deep hits and a heartbeat, never gimmicks."""
     events: list[tuple[float, str, float]] = []
+    tense = mood in sound.TENSE_MOODS
     for shot, entry in zip(story["shots"], timeline):
         start = entry["start"]
         fx = set(shot.get("fx", []))
         transition = shot.get("transition", "cut")
-        if transition == "whip" or shot.get("camera", "").startswith("whip"):
+        if not tense and (transition == "whip" or shot.get("camera", "").startswith("whip")):
             events.append((max(0.0, start - 0.08), "whoosh", 0.8))
         if "impact" in fx:
-            if mood in sound.TENSE_MOODS and start >= 1.2:
-                events.append((start - 1.2, "riser", 0.55))  # tension builds into the hit
-            events.append((start, "stinger" if mood == "horror" else "impact", 1.0))
+            events.append((start, "impact", 1.0))
         for spec in shot.get("sfx", []):
             events.append((start + float(spec.get("at", 0.0)), spec["name"], float(spec.get("gain", 1.0))))
         fx_text = shot.get("sfx_text")
-        if fx_text and not any(s.get("name") in {"impact", "crowd", "coin", "chime"} for s in shot.get("sfx", [])) and "impact" not in fx:
+        if (not tense and fx_text and "impact" not in fx
+                and not any(s.get("name") in {"impact", "crowd", "coin", "chime"} for s in shot.get("sfx", []))):
             events.append((start + float(fx_text.get("at", 0.0)), "impact", 0.7))
     return events
 

@@ -14,8 +14,8 @@ import numpy as np
 RATE = 24000
 VOICE_TARGET_RMS = 0.11
 MUSIC_RMS = 0.05  # legacy constant
-MUSIC_PHONE_RMS = 0.05  # loudness of the bed in the band phone speakers can play (>150 Hz)
-SFX_PEAK = 0.38
+MUSIC_PHONE_RMS = 0.075  # loudness of the bed in the band phone speakers can play (>150 Hz)
+SFX_PEAK = 0.26
 
 
 def read_wav(path: str | Path) -> np.ndarray:
@@ -197,9 +197,10 @@ SFX["murmur"] = murmur
 # Horror, thriller and scary-documentary stories never use playful sounds: each cartoon-ish
 # effect maps to a chilling equivalent (or is dropped) so viewers take the story seriously.
 TENSE_SFX_MAP: dict[str, str | None] = {
-    "whoosh": "air_pass", "whoosh_back": "air_pass", "impact": "sub_hit", "chime": "dread_swell",
-    "coin": None, "crowd": "murmur",
+    "whoosh": None, "whoosh_back": None, "impact": "sub_hit", "chime": "dread_swell", "stinger": "sub_hit",
+    "coin": None, "crowd": None, "riser": None, "air_pass": None, "murmur": None,
 }
+TENSE_SFX_GAIN = 0.7
 
 
 # ----------------------------------------------------------------------------- mood beds
@@ -282,17 +283,8 @@ def _bed_horror(seconds: float, rng: np.random.Generator) -> np.ndarray:
         base = float(rng.choice((1865.0, 2093.0, 2489.0)))
         glass = (np.sin(2 * np.pi * base * tt) + np.sin(2 * np.pi * base * 1.0595 * tt)) * np.hanning(tt.size)
         glass *= 0.5 + 0.5 * np.sin(2 * np.pi * 6.0 * tt)
-        _place(out, glass.astype(np.float32), cursor, 0.06)
+        _place(out, glass.astype(np.float32), cursor, 0.03)
         cursor += rng.uniform(4.0, 7.5)
-    cursor = 5.0
-    while cursor < seconds - 2:
-        scrape = _bandpass_noise(rng, 1.4, 2500, 6500) * np.hanning(int(1.4 * RATE))
-        _place(out, scrape.astype(np.float32), cursor, 0.08)
-        cursor += rng.uniform(9.0, 16.0)
-    cursor = 8.0
-    while cursor < seconds - 3:
-        _place(out, riser(2.4) * 0.35, cursor)
-        cursor += rng.uniform(13.0, 20.0)
     return out
 
 
@@ -484,7 +476,7 @@ def normalise_voice(audio: np.ndarray) -> np.ndarray:
     return audio * gain
 
 
-def duck_envelope(voice: np.ndarray, floor: float = 0.62) -> np.ndarray:
+def duck_envelope(voice: np.ndarray, floor: float = 0.7) -> np.ndarray:
     """Music gain that dips while someone is speaking and recovers in the gaps."""
     window = int(0.18 * RATE)
     smooth = np.convolve(np.abs(voice), np.ones(window) / window, mode="same")
@@ -519,6 +511,7 @@ def mix_soundtrack(
             name = TENSE_SFX_MAP[name]
             if name is None:
                 continue
+            gain *= TENSE_SFX_GAIN
         effect = SFX[name]()
         effect = effect / (np.max(np.abs(effect)) + 1e-9) * SFX_PEAK * gain
         begin = max(0, int(when * RATE))

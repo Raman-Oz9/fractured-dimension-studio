@@ -96,8 +96,8 @@ def test_every_mood_bed_is_levelled_under_narration():
         bed = audio.music_bed(6.0, mood)
         freqs = np.fft.rfftfreq(bed.size, 1 / audio.RATE)
         audible = np.fft.irfft(np.fft.rfft(bed) * (freqs > 150), bed.size)
-        assert 0.035 < float(np.sqrt(np.mean(audible ** 2))) < 0.07, mood
-        assert float(np.sqrt(np.mean(bed ** 2))) < 0.11, mood  # no bass hogging the loudness headroom
+        assert 0.05 < float(np.sqrt(np.mean(audible ** 2))) < 0.1, mood
+        assert float(np.sqrt(np.mean(bed ** 2))) < 0.16, mood  # no bass hogging the loudness headroom
 
 
 def test_mood_detection_reads_the_script():
@@ -109,7 +109,7 @@ def test_narration_flows_without_long_gaps():
     story = {"shots": [{"narration": "One, two"}, {"narration": "three."}, {"narration": "Four."}]}
     timeline = manga.plan_timeline(story, [1.0, 1.0, 1.0])
     gaps = [timeline[i]["duration"] - 1.0 for i in (1,)]
-    assert gaps[0] <= 0.35
+    assert 0.4 <= gaps[0] <= 0.8  # real breathing room after a sentence
 
 
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="FFmpeg required")
