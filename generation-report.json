@@ -1,0 +1,117 @@
+[
+  {
+    "shot": "character:BORO",
+    "image": "stories/active/images/character-boro-reference.png",
+    "status": "reference-cached"
+  },
+  {
+    "shot": "character:SHADOW",
+    "image": "stories/active/images/character-shadow-reference.png",
+    "status": "reference-cached"
+  },
+  {
+    "shot": "character:MARKET",
+    "image": "stories/active/images/location-market-reference.png",
+    "status": "reference-cached"
+  },
+  {
+    "shot": "1",
+    "image": "stories/active/images/shot-01.png",
+    "status": "cached"
+  },
+  {
+    "shot": "2",
+    "image": "stories/active/images/shot-02.png",
+    "status": "cached"
+  },
+  {
+    "shot": "3",
+    "image": "stories/active/images/shot-03.png",
+    "status": "cached"
+  },
+  {
+    "shot": "4",
+    "image": "stories/active/images/shot-04.png",
+    "status": "cached"
+  },
+  {
+    "shot": "5",
+    "image": "stories/active/images/shot-05.png",
+    "status": "cached"
+  },
+  {
+    "shot": "6",
+    "image": "stories/active/images/shot-06.png",
+    "status": "cached"
+  },
+  {
+    "shot": "7",
+    "image": "stories/active/images/shot-07.png",
+    "status": "cached"
+  },
+  {
+    "shot": "8",
+    "image": "stories/active/images/shot-08.png",
+    "status": "cached"
+  },
+  {
+    "shot": "9",
+    "image": "stories/active/images/shot-09.png",
+    "status": "cached"
+  },
+  {
+    "shot": "10",
+    "image": "stories/active/images/shot-10.png",
+    "status": "cached"
+  },
+  {
+    "shot": "11",
+    "image": "stories/active/images/shot-11.png",
+    "status": "cached"
+  },
+  {
+    "shot": "12",
+    "image": "stories/active/images/shot-12.png",
+    "status": "cached"
+  },
+  {
+    "shot": "13",
+    "image": "stories/active/images/shot-13.png",
+    "status": "cached"
+  },
+  {
+    "shot": "14",
+    "image": "stories/active/images/shot-14.png",
+    "status": "cached"
+  },
+  {
+    "shot": "15",
+    "image": "stories/active/images/shot-15.png",
+    "status": "cached"
+  },
+  {
+    "shot": "16",
+    "image": "stories/active/images/shot-16.png",
+    "status": "cached"
+  },
+  {
+    "shot": "17",
+    "image": "stories/active/images/shot-17.png",
+    "status": "cached"
+  },
+  {
+    "shot": "18",
+    "image": "stories/active/images/shot-18.png",
+    "status": "cached"
+  },
+  {
+    "shot": "19",
+    "image": "stories/active/images/shot-13.png",
+    "status": "cached"
+  },
+  {
+    "shot": "20",
+    "image": "stories/active/images/shot-18.png",
+    "status": "cached"
+  }
+]

@@ -1,0 +1,182 @@
+[
+  {
+    "index": 1,
+    "start": 0.0,
+    "duration": 4.55,
+    "lead": 0.5,
+    "speech": 3.77,
+    "speech_start": 0.5,
+    "narration": "Two thirteen in the morning. The Midnight Market is wide awake."
+  },
+  {
+    "index": 2,
+    "start": 4.55,
+    "duration": 5.04,
+    "lead": 0.0,
+    "speech": 4.76,
+    "speech_start": 4.55,
+    "narration": "Boro, a little street magician with big dreams and a crooked hat, takes his bow."
+  },
+  {
+    "index": 3,
+    "start": 9.59,
+    "duration": 3.49,
+    "lead": 0.0,
+    "speech": 3.21,
+    "speech_start": 9.59,
+    "narration": "But behind him, his shadow does every difficult trick."
+  },
+  {
+    "index": 4,
+    "start": 13.08,
+    "duration": 2.5,
+    "lead": 0.0,
+    "speech": 2.22,
+    "speech_start": 13.08,
+    "narration": "It catches the falling coins."
+  },
+  {
+    "index": 5,
+    "start": 15.57,
+    "duration": 2.26,
+    "lead": 0.0,
+    "speech": 1.98,
+    "speech_start": 15.57,
+    "narration": "It balances the lanterns."
+  },
+  {
+    "index": 6,
+    "start": 17.84,
+    "duration": 3.85,
+    "lead": 0.0,
+    "speech": 3.57,
+    "speech_start": 17.84,
+    "narration": "It even makes impossible birds dance across the walls."
+  },
+  {
+    "index": 7,
+    "start": 21.69,
+    "duration": 3.55,
+    "lead": 0.0,
+    "speech": 3.27,
+    "speech_start": 21.69,
+    "narration": "And who gets the applause? Boro. Every single time."
+  },
+  {
+    "index": 8,
+    "start": 25.24,
+    "duration": 3.06,
+    "lead": 0.0,
+    "speech": 2.78,
+    "speech_start": 25.24,
+    "narration": "Not one thank-you. Not once. Not in years."
+  },
+  {
+    "index": 9,
+    "start": 28.3,
+    "duration": 2.21,
+    "lead": 0.0,
+    "speech": 1.93,
+    "speech_start": 28.3,
+    "narration": "Tonight, the shadow said... enough."
+  },
+  {
+    "index": 10,
+    "start": 30.52,
+    "duration": 2.95,
+    "lead": 0.0,
+    "speech": 2.67,
+    "speech_start": 30.52,
+    "narration": "It peeled itself right off the cobblestones."
+  },
+  {
+    "index": 11,
+    "start": 33.47,
+    "duration": 3.19,
+    "lead": 0.0,
+    "speech": 2.91,
+    "speech_start": 33.47,
+    "narration": "Boro froze. His shadow strode onto the stage."
+  },
+  {
+    "index": 12,
+    "start": 36.66,
+    "duration": 3.1,
+    "lead": 0.0,
+    "speech": 2.82,
+    "speech_start": 36.66,
+    "narration": "And it performed a dazzling show of its own!"
+  },
+  {
+    "index": 13,
+    "start": 39.75,
+    "duration": 2.58,
+    "lead": 0.0,
+    "speech": 2.3,
+    "speech_start": 39.75,
+    "narration": "The crowd went absolutely wild."
+  },
+  {
+    "index": 14,
+    "start": 42.33,
+    "duration": 4.0,
+    "lead": 0.0,
+    "speech": 3.72,
+    "speech_start": 42.33,
+    "narration": "Boro rushed forward to steal it back, and tripped over his own coat!"
+  },
+  {
+    "index": 15,
+    "start": 46.33,
+    "duration": 2.98,
+    "lead": 0.0,
+    "speech": 2.7,
+    "speech_start": 46.33,
+    "narration": "Flat on the cobbles. Hat still rolling away."
+  },
+  {
+    "index": 16,
+    "start": 49.31,
+    "duration": 3.24,
+    "lead": 0.0,
+    "speech": 2.96,
+    "speech_start": 49.31,
+    "narration": "His shadow just looked down, and pointed at a broom."
+  },
+  {
+    "index": 17,
+    "start": 52.55,
+    "duration": 3.75,
+    "lead": 0.0,
+    "speech": 3.47,
+    "speech_start": 52.55,
+    "narration": "The message was clear. The magician was now the assistant."
+  },
+  {
+    "index": 18,
+    "start": 56.3,
+    "duration": 2.16,
+    "lead": 0.0,
+    "speech": 1.88,
+    "speech_start": 56.3,
+    "narration": "Boro picked up the broom."
+  },
+  {
+    "index": 19,
+    "start": 58.46,
+    "duration": 4.45,
+    "lead": 0.0,
+    "speech": 4.17,
+    "speech_start": 58.46,
+    "narration": "The crowd gave a standing ovation, and every cheer was for the shadow."
+  },
+  {
+    "index": 20,
+    "start": 62.92,
+    "duration": 5.53,
+    "lead": 0.0,
+    "speech": 4.13,
+    "speech_start": 62.92,
+    "narration": "Boro forced a smile. The show must go on, even when it isn't yours."
+  }
+]
