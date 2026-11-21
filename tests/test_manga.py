@@ -95,7 +95,7 @@ def test_every_mood_bed_is_levelled_under_narration():
     for mood in audio.MOODS:
         bed = audio.music_bed(6.0, mood)
         rms = float(np.sqrt(np.mean(bed ** 2)))
-        assert 0.015 < rms < 0.035, mood
+        assert 0.03 < rms < 0.075, mood
 
 
 def test_mood_detection_reads_the_script():

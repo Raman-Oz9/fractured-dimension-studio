@@ -13,7 +13,7 @@ import numpy as np
 
 RATE = 24000
 VOICE_TARGET_RMS = 0.11
-MUSIC_RMS = 0.026  # about 12 dB under narration: felt, never competing with it
+MUSIC_RMS = 0.05  # roughly 7 dB under narration between lines, ~11 dB while he speaks
 SFX_PEAK = 0.38
 
 
@@ -427,7 +427,7 @@ def normalise_voice(audio: np.ndarray) -> np.ndarray:
     return audio * gain
 
 
-def duck_envelope(voice: np.ndarray, floor: float = 0.5) -> np.ndarray:
+def duck_envelope(voice: np.ndarray, floor: float = 0.6) -> np.ndarray:
     """Music gain that dips while someone is speaking and recovers in the gaps."""
     window = int(0.18 * RATE)
     smooth = np.convolve(np.abs(voice), np.ones(window) / window, mode="same")

@@ -34,18 +34,18 @@ on:
         description: Narration speed (1.0 = normal; deep voices read best at 0.95-1.05)
         required: false
         type: string
-        default: "0.88"
+        default: "0.85"
       narrator_style:
-        description: dark = slightly scary, hollow storyteller edge; natural = clean
+        description: villain = deep, gravelly, menacing; dark = hollow storyteller; natural = clean
         required: false
         type: choice
-        options: [dark, natural]
-        default: dark
+        options: [villain, dark, natural]
+        default: villain
       voice_depth:
-        description: Extra narrator depth in semitones (0 = natural, 1.2 = moody, 2.5 = very deep)
+        description: Extra narrator depth in semitones (0 = natural, 2 = moody, 3.5 = villain, 5 = extreme)
         required: false
         type: string
-        default: "1.2"
+        default: "3.5"
       mood:
         description: Soundtrack mood (auto reads the script)
         required: false
@@ -71,9 +71,9 @@ jobs:
     env:
       VOICE_BACKEND: ${{ inputs.voice_backend || 'kokoro' }}
       KOKORO_VOICE: ${{ inputs.narrator || 'am_onyx' }}
-      KOKORO_SPEED: ${{ inputs.narrator_speed || '0.88' }}
-      VOICE_DEPTH: ${{ inputs.voice_depth || '1.2' }}
-      VOICE_EERIE: ${{ inputs.narrator_style == 'natural' && '0' || '1' }}
+      KOKORO_SPEED: ${{ inputs.narrator_speed || '0.85' }}
+      VOICE_DEPTH: ${{ inputs.voice_depth || '3.5' }}
+      VOICE_STYLE: ${{ inputs.narrator_style || 'villain' }}
       STORY_MOOD: ${{ inputs.mood == 'auto' && '' || inputs.mood }}
       VOICESTUDIO_BASE_URL: ${{ secrets.VOICESTUDIO_BASE_URL }}
       VOICESTUDIO_API_KEY: ${{ secrets.VOICESTUDIO_API_KEY }}
@@ -169,6 +169,25 @@ jobs:
             stories/active/story.json
           if-no-files-found: ignore
 
+      - name: Voice lab (same line at three villain strengths)
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import os, subprocess
+          from pathlib import Path
+          from fractured_dimension.voice import generate_voice_lines
+          line = "You thought the dark was empty. It was only waiting for you to stop looking."
+          out = Path("voice-lab"); out.mkdir(exist_ok=True)
+          files = []
+          for name, depth, speed in (("A-moody", 2.0, 0.9), ("B-villain", 3.5, 0.85), ("C-extreme", 5.0, 0.82)):
+              os.environ["VOICE_DEPTH"], os.environ["KOKORO_SPEED"], os.environ["VOICE_STYLE"] = str(depth), str(speed), "villain"
+              files.append(generate_voice_lines([line], out / name, name)[0])
+          listing = out / "list.txt"
+          listing.write_text("".join(f"file '{f.resolve()}'\nfile '{Path('silence.wav').resolve()}'\n" for f in files))
+          subprocess.run(["ffmpeg","-y","-v","error","-f","lavfi","-i","anullsrc=r=24000:cl=mono","-t","1.0",str(Path("silence.wav"))],check=True)
+          subprocess.run(["ffmpeg","-y","-v","error","-f","concat","-safe","0","-i",str(listing),"-b:a","128k","voice-lab.mp3"],check=True)
+          PY
+
       - name: Publish test render to the test-renders branch (never uploads to YouTube)
         if: always()
         run: |
@@ -178,6 +197,7 @@ jobs:
           cp output/fractured-dimension-short.mp4 output/fractured-dimension-short.timeline.json /tmp/pub/ 2>/dev/null || true
           cp "$D"/images/*.png /tmp/pub/images/ 2>/dev/null || true
           cp "$D"/generation-report.json /tmp/pub/ 2>/dev/null || true
+          cp voice-lab.mp3 /tmp/pub/ 2>/dev/null || true
           cd /tmp/pub
           git init -q -b test-renders
           git config user.name "github-actions"

@@ -1,9 +1,9 @@
 {
   "title": "The Shadow That Quit",
   "episode_id": "FD-01",
-  "render_revision": 14,
+  "render_revision": 15,
   "render_style": "manga",
-  "mood": "dark_comedy",
+  "mood": "horror",
   "manga": {
     "tone": true,
     "grain": true,

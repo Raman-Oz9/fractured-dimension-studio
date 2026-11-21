@@ -115,28 +115,44 @@ def _test_tone_line(text: str, output: Path) -> Path:
     return _write_wav(output, np.concatenate(parts), rate)
 
 
+def _voice_style() -> str:
+    style = os.environ.get("VOICE_STYLE", "").strip().lower()
+    if not style and os.environ.get("VOICE_EERIE", "0") == "1":
+        style = "dark"
+    return style or "natural"
+
+
 def deepen_voice(path: Path, semitones: float) -> Path:
-    """Lower the narrator's pitch and formants, add chest warmth and gentle compression.
+    """Reshape the narrator: pitch/formants down, then a style chain (natural, dark, villain).
 
     Resampling down makes the voice sound bigger (a longer vocal tract); atempo restores the
-    original pacing so the line keeps its length.
+    original pacing so the line keeps its length. 'villain' adds sub-bass weight, harmonic grit
+    from soft saturation, strong compression and a faint cavernous tail for a Thanos-like menace.
     """
     import shutil
     import subprocess
 
-    eerie = os.environ.get("VOICE_EERIE", "0") == "1"
-    if (semitones <= 0 and not eerie) or shutil.which("ffmpeg") is None:
+    style = _voice_style()
+    if (semitones <= 0 and style == "natural") or shutil.which("ffmpeg") is None:
         return path
     factor = 2 ** (-max(semitones, 0) / 12)
     tmp = path.with_suffix(".deep.wav")
-    chain = (
-        f"asetrate=24000*{factor:.5f},aresample=24000,atempo={1 / factor:.5f},"
-        "equalizer=f=105:t=h:w=160:g=4,equalizer=f=250:t=q:w=1:g=1.5,equalizer=f=7500:t=h:w=2000:g=-3,"
-        "acompressor=threshold=-21dB:ratio=3:attack=6:release=90:makeup=2"
-    )
-    if os.environ.get("VOICE_EERIE", "0") == "1":
-        # A cold, slightly hollow edge: short room echo and a touch less top end.
-        chain += ",aecho=0.8:0.55:38|85:0.22|0.12,lowpass=f=6800"
+    chain = f"asetrate=24000*{factor:.5f},aresample=24000,atempo={1 / factor:.5f}"
+    if style == "villain":
+        chain += (
+            ",equalizer=f=85:t=h:w=140:g=6,equalizer=f=170:t=q:w=1:g=2.5,equalizer=f=2800:t=q:w=1.2:g=2,"
+            "equalizer=f=8000:t=h:w=2000:g=-6,"
+            "volume=2.4,asoftclip=type=tanh,volume=0.45,"
+            "acompressor=threshold=-24dB:ratio=4.5:attack=4:release=110:makeup=3,"
+            "aecho=0.65:0.4:60|130:0.14|0.07,lowpass=f=7200"
+        )
+    else:
+        chain += (
+            ",equalizer=f=105:t=h:w=160:g=4,equalizer=f=250:t=q:w=1:g=1.5,equalizer=f=7500:t=h:w=2000:g=-3,"
+            "acompressor=threshold=-21dB:ratio=3:attack=6:release=90:makeup=2"
+        )
+        if style == "dark":
+            chain += ",aecho=0.8:0.55:38|85:0.22|0.12,lowpass=f=6800"
     subprocess.run(
         ["ffmpeg", "-y", "-v", "error", "-i", str(path), "-af", chain, "-ac", "1", "-ar", "24000",
          "-c:a", "pcm_s16le", str(tmp)],
