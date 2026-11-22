@@ -29,12 +29,12 @@ on:
           - am_puck
           - bm_fable
           - bm_george
-        default: am_onyx
+        default: am_michael
       narrator_speed:
         description: Narration speed (1.0 = normal; deep voices read best at 0.95-1.05)
         required: false
         type: string
-        default: "0.82"
+        default: "0.92"
       narrator_style:
         description: natural = clean, close, dry (recommended); villain/dark add effects that can sound like a loudspeaker
         required: false
@@ -45,7 +45,7 @@ on:
         description: Extra narrator depth in semitones (0 = natural, 1.8 = darker, 3 = very deep)
         required: false
         type: string
-        default: "1.8"
+        default: "0"
       mood:
         description: Soundtrack mood (auto reads the script)
         required: false
@@ -70,14 +70,14 @@ jobs:
     timeout-minutes: 90
     env:
       VOICE_BACKEND: ${{ inputs.voice_backend || 'kokoro' }}
-      KOKORO_VOICE: ${{ inputs.narrator || 'am_onyx' }}
-      KOKORO_SPEED: ${{ inputs.narrator_speed || '0.82' }}
-      VOICE_DEPTH: ${{ inputs.voice_depth || '1.8' }}
+      KOKORO_VOICE: ${{ inputs.narrator || 'am_michael' }}
+      KOKORO_SPEED: ${{ inputs.narrator_speed || '0.92' }}
+      VOICE_DEPTH: ${{ inputs.voice_depth || '0' }}
       VOICE_STYLE: ${{ inputs.narrator_style || 'natural' }}
       STORY_MOOD: ${{ inputs.mood == 'auto' && '' || inputs.mood }}
       VOICESTUDIO_BASE_URL: ${{ secrets.VOICESTUDIO_BASE_URL }}
       VOICESTUDIO_API_KEY: ${{ secrets.VOICESTUDIO_API_KEY }}
-      VOICESTUDIO_VOICE: ${{ inputs.narrator || 'am_onyx' }}
+      VOICESTUDIO_VOICE: ${{ inputs.narrator || 'am_michael' }}
       VOICESTUDIO_MODEL: tts-1
       VOICESTUDIO_SPEED: "0.92"
     steps:

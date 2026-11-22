@@ -1,12 +1,10 @@
 {
   "title": "The Twelfth Stop",
   "episode_id": "HR-01",
-  "render_revision": 3,
+  "render_revision": 4,
   "render_style": "manga",
   "mood": "horror",
-  "ambience": [
-    "rain"
-  ],
+  "ambience": [],
   "manga": {
     "tone": true,
     "grain": true,
@@ -161,7 +159,7 @@
         "MARA"
       ],
       "narration": "Then she glanced up at the mirror.",
-      "image_prompt": "Extreme close-up of the bus rear-view mirror with the dim interior of the bus reflected inside it, Mara's tired eye reflected at its edge, rain light glinting.",
+      "image_prompt": "Full-bleed illustration filling the entire frame edge to edge with no border and no frame: extreme close-up of the bus rear-view mirror with the dim interior of the bus reflected inside it, Mara's tired eye reflected at its edge, rain light glinting.",
       "angle": "extreme_closeup",
       "sfx": [
         {
@@ -213,7 +211,7 @@
         {
           "name": "dread_swell",
           "at": 0.0,
-          "gain": 0.6
+          "gain": 0.45
         }
       ]
     },
@@ -250,7 +248,7 @@
         "TALLY"
       ],
       "narration": "He was tall and thin, in a long black coat that dripped onto the floor.",
-      "image_prompt": "The Tally Man seated in the aisle seat, impossibly tall and thin, a puddle of black water spreading on the floor under his dripping long coat, wide hat brim above, seen from a low angle.",
+      "image_prompt": "The Tally Man sitting upright on a padded bus seat with exactly two legs and two boots on the floor, the notched wooden stick resting across his lap, impossibly tall and thin, a puddle of black water under his dripping long coat, wide hat brim hiding his face, seen from a low angle.",
       "angle": "worm",
       "camera_path": [
         {
@@ -349,7 +347,7 @@
         {
           "name": "creak",
           "at": 0.4,
-          "gain": 0.7
+          "gain": 0.5
         }
       ]
     },
@@ -362,7 +360,7 @@
         "MARA"
       ],
       "narration": "She blinked. He was three rows closer.",
-      "image_prompt": "Point of view down the aisle from the driver's seat: the Tally Man now standing in the middle of the aisle, tall and still, head bowed under the hat, the empty seats and rain-streaked windows on both sides.",
+      "image_prompt": "Point of view down the aisle from the driver's seat: the Tally Man standing in the middle of the aisle, so tall his hat nearly touches the ceiling, thin as a scarecrow, head bowed so the hat brim hides his whole face in solid black, exactly two legs, empty seats and rain-streaked windows on both sides.",
       "angle": "dutch",
       "fx": [
         "focus_lines"
@@ -422,7 +420,7 @@
         {
           "name": "engine_rev",
           "at": 0.0,
-          "gain": 0.9
+          "gain": 0.6
         }
       ],
       "sfx_text": {
@@ -443,7 +441,7 @@
         "HOLLOW"
       ],
       "narration": "Trees tore past. Every mile marker read thirteen, and the road never ended.",
-      "image_prompt": "The bus speeding down an endless straight road through fog, bare trees streaking past as black motion lines, white roadside mile marker posts each painted with the number 13 flickering by on both sides, perspective stretching to infinity.",
+      "image_prompt": "No people at all. The front of an old rounded bus with glowing headlights speeding toward the viewer down an endless straight wet road through fog, bare trees streaking past as black motion lines, white roadside mile marker posts flickering by on both sides, perspective stretching to infinity.",
       "angle": "low",
       "fx": [
         "speed_lines"
@@ -474,14 +472,7 @@
       ],
       "narration": "Hundreds of notches. One for every driver who ever stopped.",
       "image_prompt": "Extreme close-up of the surface of the wooden stick packed with hundreds of tiny carved notches in neat rows, some old and weathered, the last few fresh and pale, dramatic raking light.",
-      "angle": "extreme_closeup",
-      "sfx": [
-        {
-          "name": "whisper",
-          "at": 0.6,
-          "gain": 0.7
-        }
-      ]
+      "angle": "extreme_closeup"
     },
     {
       "image": "images/shot-20.png",
@@ -541,13 +532,6 @@
       "focus": [
         0.5,
         0.4
-      ],
-      "sfx": [
-        {
-          "name": "whisper",
-          "at": 0.4,
-          "gain": 0.8
-        }
       ]
     },
     {
@@ -564,7 +548,7 @@
         {
           "name": "creak",
           "at": 0.9,
-          "gain": 0.8
+          "gain": 0.5
         }
       ]
     },
@@ -613,13 +597,6 @@
           "x": 0.5,
           "y": 0.14,
           "roll": -1.5
-        }
-      ],
-      "sfx": [
-        {
-          "name": "whisper",
-          "at": 0.3,
-          "gain": 0.7
         }
       ]
     },

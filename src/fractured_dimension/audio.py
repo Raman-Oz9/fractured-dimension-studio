@@ -246,7 +246,7 @@ def rain_layer(seconds: float, seed: int = 31) -> np.ndarray:
 
 
 AMBIENCE = {"rain": rain_layer}
-AMBIENCE_PHONE_RMS = 0.03
+AMBIENCE_PHONE_RMS = 0.008
 
 SFX["tick"] = tick
 SFX["knock"] = knock
@@ -267,6 +267,7 @@ TENSE_SFX_MAP: dict[str, str | None] = {
     "coin": None, "crowd": None, "riser": None, "air_pass": None, "murmur": None,
 }
 TENSE_SFX_GAIN = 0.7
+SPEECH_BAND_SFX = {"whisper", "creak", "engine_rev", "dread_swell", "murmur", "crowd", "chime"}
 
 
 # ----------------------------------------------------------------------------- mood beds
@@ -593,7 +594,11 @@ def mix_soundtrack(
         begin = max(0, int(when * RATE))
         end = min(total, begin + effect.size)
         if begin < total:
-            mix[begin:end] += effect[: end - begin]
+            segment = effect[: end - begin]
+            if name in SPEECH_BAND_SFX:
+                # Effects that live in the speech band get out of the narrator's way.
+                segment = segment * duck_envelope(voice, floor=0.3)[begin:end]
+            mix[begin:end] += segment
     peak = float(np.max(np.abs(mix))) or 1.0
     if peak > 0.97:
         mix = mix / peak * 0.97

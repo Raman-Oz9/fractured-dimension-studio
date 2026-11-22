@@ -133,7 +133,7 @@ def deepen_voice(path: Path, semitones: float) -> Path:
     import subprocess
 
     style = _voice_style()
-    if (semitones <= 0 and style == "natural" and os.environ.get("VOICE_CLOSE", "1") != "1") or shutil.which("ffmpeg") is None:
+    if (semitones <= 0 and style == "natural" and os.environ.get("VOICE_CLOSE", "0") != "1") or shutil.which("ffmpeg") is None:
         return path
     factor = 2 ** (-max(semitones, 0) / 12)
     tmp = path.with_suffix(".deep.wav")

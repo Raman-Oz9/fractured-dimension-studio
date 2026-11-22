@@ -510,7 +510,8 @@ PROMPT_LIMIT = 1850  # Cloudflare rejects prompts above 2,048 characters; keep h
 _SINGLE_SCENE_RULES = (
     "ONE finished story scene, not a character sheet, collage, split panel, inset or text. "
     "Each person has exactly one head, one face, two arms and two legs: no duplicate head, "
-    "floating head, merged bodies or extra limbs. Use the reference only for identity, never its layout."
+    "floating head, merged bodies or extra limbs. Hands have exactly five fingers; every standing or sitting "
+    "person has exactly two legs and two feet. Use the reference only for identity, never its layout."
 )
 
 
