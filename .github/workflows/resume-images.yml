@@ -1,0 +1,34 @@
+name: Resume image generation after quota reset
+
+# Cloudflare's free image allowance resets at 00:00 UTC. A few minutes later, if any image for the
+# active story is still missing, start the main workflow: it resumes from the cached images,
+# finishes the rest and renders the video.
+on:
+  schedule:
+    - cron: "10 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  resume:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the render if images are missing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          missing=$(python3 - <<'PY'
+          import json, os
+          root = "stories/active"
+          story = json.load(open(f"{root}/story.json"))
+          paths = [s["image"] for s in story["shots"]]
+          paths += [c["reference_image"] for c in story.get("character_bible", {}).values() if isinstance(c, dict) and c.get("reference_image")]
+          print(sum(1 for p in paths if not os.path.exists(os.path.join(root, p))))
+          PY
+          )
+          echo "Missing images: $missing"
+          if [ "$missing" -gt 0 ]; then gh workflow run generate-video.yml --repo "$GITHUB_REPOSITORY" -f story_path=stories/active/story.json; fi

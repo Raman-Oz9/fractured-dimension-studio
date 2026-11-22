@@ -140,6 +140,20 @@ jobs:
             fractured-dimension generate "$STORY_PATH"
           fi
 
+      - name: Save Cloudflare-made images to the repo so reruns resume where they stopped
+        if: always()
+        run: |
+          set -e
+          [ -n "$STORY_PATH" ] || exit 0
+          D="$(dirname "$STORY_PATH")/images"
+          [ -d "$D" ] || exit 0
+          for f in "$D"/*.png; do
+            if [ -f "$f.provider" ] && grep -q cloudflare "$f.provider"; then git add -f "$f"; fi
+          done
+          git -c user.name=github-actions -c user.email=actions@users.noreply.github.com commit -q -m "Cache generated images [skip ci]" || exit 0
+          git pull -q --rebase origin main
+          git push -q origin HEAD:main
+
       - name: Check script-to-picture sync
         run: |
           python -c "

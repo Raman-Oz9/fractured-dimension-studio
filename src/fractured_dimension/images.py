@@ -383,6 +383,18 @@ def _request_image_with_fallback(
 
 
 
+class ImageQuotaExhausted(Exception):
+    """Cloudflare's daily allowance is gone; stop instead of designing characters elsewhere."""
+
+
+def _mark_provider(path: Path, provider: str) -> None:
+    """Record which provider made an image so only Cloudflare-made art is cached in the repo."""
+    try:
+        path.with_name(path.name + ".provider").write_text(provider, encoding="utf-8")
+    except OSError:
+        pass
+
+
 def _character_profile(story: dict, character_id: str) -> dict:
     profile = story.get("character_bible", {}).get(character_id)
     if isinstance(profile, str):
@@ -463,6 +475,13 @@ def _prepare_character_references(
                 _, provider, actual_model = _request_image_with_fallback(
                     prompt, destination, selected
                 )
+                if provider != "cloudflare" and os.getenv("CLOUDFLARE_ACCOUNT_ID"):
+                    destination.unlink(missing_ok=True)
+                    raise ImageQuotaExhausted(
+                        f"Cloudflare is out of daily image allowance; refusing to let {provider} design the "
+                        f"reference for {character_id}. Re-run after the quota resets."
+                    )
+                _mark_provider(destination, provider)
                 references[character_id] = destination
                 report.append({
                     "shot": f"character:{character_id}",
@@ -602,6 +621,7 @@ def generate_story_images(story: dict, *, overwrite: bool = False) -> list[Path]
                         f"Shot {index}: all image models failed:\n"
                         + "\n".join(failures)
                     ) from exc
+        _mark_provider(destination, selected_provider)
         generated.append(destination)
         report.append({
             "shot": str(index),
