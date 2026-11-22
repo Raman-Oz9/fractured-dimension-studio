@@ -115,6 +115,17 @@ def _test_tone_line(text: str, output: Path) -> Path:
     return _write_wav(output, np.concatenate(parts), rate)
 
 
+# Chosen narrator presets: voice -> extra depth in semitones (used when VOICE_DEPTH is unset or "auto").
+VOICE_PRESET_DEPTH = {"am_adam": 2.5, "bm_daniel": 3.5}
+
+
+def resolve_depth(voice: str) -> float:
+    raw = os.environ.get("VOICE_DEPTH", "auto").strip().lower()
+    if raw in ("", "auto"):
+        return VOICE_PRESET_DEPTH.get(voice, 0.0)
+    return float(raw)
+
+
 def _voice_style() -> str:
     style = os.environ.get("VOICE_STYLE", "").strip().lower()
     if not style and os.environ.get("VOICE_EERIE", "0") == "1":
@@ -211,7 +222,7 @@ def generate_voice_lines(lines: list[str], out_dir: str | Path, prefix: str = "l
         if not chunks:
             raise RuntimeError(f"Kokoro returned no audio for line: {text[:60]!r}")
         _write_wav(path, _trim_silence(np.concatenate(chunks)))
-        deepen_voice(path, float(os.environ.get("VOICE_DEPTH", "0") or 0))
+        deepen_voice(path, resolve_depth(voice))
     return paths
 
 

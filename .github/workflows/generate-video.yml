@@ -22,19 +22,20 @@ on:
         required: true
         type: choice
         options:
+          - am_adam
+          - bm_daniel
           - am_onyx
           - am_liam
           - am_michael
-          - am_adam
           - am_puck
           - bm_fable
           - bm_george
-        default: am_michael
+        default: am_adam
       narrator_speed:
         description: Narration speed (1.0 = normal; deep voices read best at 0.95-1.05)
         required: false
         type: string
-        default: "0.92"
+        default: "0.85"
       narrator_style:
         description: natural = clean, close, dry (recommended); villain/dark add effects that can sound like a loudspeaker
         required: false
@@ -42,10 +43,10 @@ on:
         options: [natural, villain, dark]
         default: natural
       voice_depth:
-        description: Extra narrator depth in semitones (0 = natural, 1.8 = darker, 3 = very deep)
+        description: Extra depth in semitones; auto = Adam 2.5, Daniel 3.5
         required: false
         type: string
-        default: "0"
+        default: "auto"
       mood:
         description: Soundtrack mood (auto reads the script)
         required: false
@@ -70,16 +71,16 @@ jobs:
     timeout-minutes: 90
     env:
       VOICE_BACKEND: ${{ inputs.voice_backend || 'kokoro' }}
-      KOKORO_VOICE: ${{ inputs.narrator || 'am_michael' }}
-      KOKORO_SPEED: ${{ inputs.narrator_speed || '0.92' }}
-      VOICE_DEPTH: ${{ inputs.voice_depth || '0' }}
+      KOKORO_VOICE: ${{ inputs.narrator || 'am_adam' }}
+      KOKORO_SPEED: ${{ inputs.narrator_speed || '0.85' }}
+      VOICE_DEPTH: ${{ inputs.voice_depth || 'auto' }}
       VOICE_STYLE: ${{ inputs.narrator_style || 'natural' }}
       STORY_MOOD: ${{ inputs.mood == 'auto' && '' || inputs.mood }}
       VOICESTUDIO_BASE_URL: ${{ secrets.VOICESTUDIO_BASE_URL }}
       VOICESTUDIO_API_KEY: ${{ secrets.VOICESTUDIO_API_KEY }}
-      VOICESTUDIO_VOICE: ${{ inputs.narrator || 'am_michael' }}
+      VOICESTUDIO_VOICE: ${{ inputs.narrator || 'am_adam' }}
       VOICESTUDIO_MODEL: tts-1
-      VOICESTUDIO_SPEED: "0.92"
+      VOICESTUDIO_SPEED: "0.85"
     steps:
       - name: Check out project
         uses: actions/checkout@v4
