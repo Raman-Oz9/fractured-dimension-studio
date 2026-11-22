@@ -1,0 +1,604 @@
+{
+  "title": "The Shadow That Quit",
+  "episode_id": "FD-01",
+  "render_revision": 17,
+  "render_style": "manga",
+  "mood": "horror",
+  "manga": {
+    "tone": true,
+    "grain": true,
+    "music": true,
+    "fade_out": true
+  },
+  "format": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30
+  },
+  "style_lock": "Black-and-white Japanese manga artwork, seinen/shonen style: bold clean G-pen ink linework, solid black fills, dense cross-hatching, 45-degree screentone dots for shading, dramatic speed lines, big expressive anime eyes, cinematic panel composition, high contrast. Monochrome only, no colour, no text, no speech bubbles, no panel borders.",
+  "character_bible": {
+    "BORO": {
+      "kind": "character",
+      "visual_identity": "Boro: short hunched adult street magician, pointed nose, big deep-set eyes, thin curled moustache, one gold tooth, oversized angular patchwork coat, crooked tall top hat tied with a thread, silver glove on left hand, striped trousers, mismatched boots. Keep his face, proportions, costume and signature details identical in every panel.",
+      "prompt_tag": "short hunched adult street magician, pointed nose, big deep-set eyes, thin curled moustache, one gold tooth, oversized angular patchwork coat, crooked tall top hat tied with a thread, silver glove on left hand, striped trousers, mismatched boots",
+      "reference_image": "images/character-boro-reference.png",
+      "reference_prompt": "Manga character design sheet for Boro: full-body three-quarter standing view plus a separate clear face portrait inset, plain white background, clean ink linework with screentone shading. Make him instantly recognisable and reusable across scenes."
+    },
+    "SHADOW": {
+      "kind": "character",
+      "visual_identity": "The living shadow: Boro's living shadow, tall solid-black ink silhouette in Boro's crooked hat and coat outline, long thin limbs, glowing pure-white slit eyes, thin sharp grin, wisps of ink smoke. Always the same design in every panel: solid black body, same hat and coat outline, same white eyes.",
+      "prompt_tag": "Boro's living shadow, tall solid-black ink silhouette in Boro's crooked hat and coat outline, long thin limbs, glowing pure-white slit eyes, thin sharp grin, wisps of ink smoke",
+      "reference_image": "images/character-shadow-reference.png",
+      "reference_prompt": "ONE single full-body figure only, centred on a plain white background: a living shadow that is a flat solid-black ink silhouette with no clothing detail, no human face and no skin, wearing the outline of a crooked top hat and long coat, with only two glowing white slit eyes and a thin white grin. No inset, no extra views, no text, no panels."
+    },
+    "MARKET": {
+      "kind": "location",
+      "visual_identity": "The Midnight Market: crowded night bazaar between crooked old buildings, strings of paper lanterns, wet cobblestones, a tall crooked clock tower, striped shop awnings, drifting mist, one lone spotlight on a small wooden stage. Keep the same architecture and lighting.",
+      "prompt_tag": "crowded night bazaar between crooked old buildings, strings of paper lanterns, wet cobblestones, a tall crooked clock tower, striped shop awnings, drifting mist, one lone spotlight on a small wooden stage",
+      "reference_image": "images/location-market-reference.png",
+      "reference_prompt": "Manga background plate of the Midnight Market, wide establishing view, detailed ink linework and screentone."
+    }
+  },
+  "shots": [
+    {
+      "image": "images/shot-01.png",
+      "duration": 2.5,
+      "camera": "tilt_down",
+      "character_ids": [
+        "MARKET",
+        "BORO"
+      ],
+      "narration": "Two thirteen in the morning. The Midnight Market is wide awake.",
+      "image_prompt": "The Midnight Market wide awake at 2:13 in the morning. Tall crooked clock tower top centre with hands at 2:13, strings of lanterns, the crowded bazaar below, tiny Boro alone under a spotlight on a small stage at bottom centre performing a card trick. Deep perspective, mist.",
+      "angle": "wide",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.25,
+          "x": 0.5,
+          "y": 0
+        },
+        {
+          "at": 0.6,
+          "zoom": 1.32,
+          "x": 0.5,
+          "y": 0.294
+        },
+        {
+          "at": 1,
+          "zoom": 1.6,
+          "x": 0.5,
+          "y": 1
+        }
+      ],
+      "transition": "dip",
+      "sfx_text": {
+        "text": "tick",
+        "at": 0.3,
+        "x": 0.76,
+        "y": 0.2,
+        "size": 190,
+        "rot": 8
+      }
+    },
+    {
+      "image": "images/shot-02.png",
+      "duration": 2.5,
+      "camera": "push_in",
+      "character_ids": [
+        "BORO"
+      ],
+      "narration": "Boro, a little street magician with big dreams and a crooked hat, takes his bow.",
+      "image_prompt": "Boro, a little street magician and conjuror with big dreams, takes a theatrical bow with his hat held out in his silver glove, proud grin showing the gold tooth, full body centred in the spotlight, lantern-lit market crowd blurred behind him.",
+      "angle": "eye",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.0,
+          "x": 0.5,
+          "y": 0.5
+        },
+        {
+          "at": 1,
+          "zoom": 1.55,
+          "x": 0.5,
+          "y": 0.105
+        }
+      ]
+    },
+    {
+      "image": "images/shot-03.png",
+      "duration": 2.5,
+      "camera": "push_in",
+      "character_ids": [
+        "BORO",
+        "SHADOW"
+      ],
+      "narration": "But behind him, his shadow does every difficult trick.",
+      "image_prompt": "Over-the-shoulder view: Boro's back and hat in the lower-left foreground, bowing; on the brick wall behind him his huge black SHADOW works hard with arms outstretched, catching gold coins falling from the dark above. The shadow is in the upper-right.",
+      "angle": "over_shoulder",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.45,
+          "x": 0.339,
+          "y": 0
+        },
+        {
+          "at": 1,
+          "zoom": 1.9,
+          "x": 0.753,
+          "y": 0
+        }
+      ],
+      "sfx": [
+        {
+          "name": "whoosh",
+          "at": 0.0,
+          "gain": 0.6
+        }
+      ]
+    },
+    {
+      "image": "images/shot-04.png",
+      "duration": 2.5,
+      "camera": "snap_in",
+      "character_ids": [
+        "SHADOW"
+      ],
+      "narration": "It catches the falling coins.",
+      "image_prompt": "Extreme close-up of the SHADOW's long black ink hand catches falling gold coins out of the air, the falling coins spinning and glinting, motion streaks, dark background.",
+      "angle": "extreme_closeup",
+      "fx": [
+        "speed_lines"
+      ],
+      "focus": [
+        0.5,
+        0.5
+      ],
+      "sfx": [
+        {
+          "name": "coin",
+          "at": 0.05
+        },
+        {
+          "name": "coin",
+          "at": 0.35,
+          "gain": 0.7
+        }
+      ],
+      "sfx_text": {
+        "text": "clink!",
+        "at": 0.1,
+        "x": 0.72,
+        "y": 0.2,
+        "size": 200,
+        "rot": -10
+      }
+    },
+    {
+      "image": "images/shot-05.png",
+      "duration": 2.5,
+      "camera": "tilt_up",
+      "character_ids": [
+        "SHADOW"
+      ],
+      "narration": "It balances the lanterns.",
+      "image_prompt": "Low-angle shot of the tall SHADOW standing perfectly balanced while three glowing paper lanterns float and stack on its head, shoulders and fingertip, tower of lanterns reaching the top of the frame.",
+      "angle": "low",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.25,
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "at": 1,
+          "zoom": 1.4,
+          "x": 0.5,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "image": "images/shot-06.png",
+      "duration": 2.5,
+      "camera": "whip_right",
+      "character_ids": [
+        "SHADOW",
+        "BORO"
+      ],
+      "narration": "It even makes impossible birds dance across the walls.",
+      "image_prompt": "Wide view of a brick wall alive with flocks of black ink-silhouette birds that dance and swoop across the wall, swirling out of the shadow's hands, the small bowing Boro and a few silhouetted onlookers at the bottom left, birds flying toward the right.",
+      "angle": "wide",
+      "transition": "whip",
+      "fx": [
+        "speed_lines"
+      ],
+      "focus": [
+        0.7,
+        0.4
+      ]
+    },
+    {
+      "image": "images/shot-07.png",
+      "duration": 2.5,
+      "camera": "pan_right",
+      "character_ids": [
+        "BORO",
+        "SHADOW"
+      ],
+      "narration": "And who gets the applause? Boro. Every single time.",
+      "image_prompt": "Crowd giving applause, clapping and cheering, Boro proudly soaking it up with a huge grin in the left-centre, while far right in the background the SHADOW slumps alone, tiny and ignored, in the dark wall.",
+      "angle": "eye",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.25,
+          "x": 0,
+          "y": 0.75
+        },
+        {
+          "at": 1,
+          "zoom": 1.5,
+          "x": 1,
+          "y": 0.74
+        }
+      ],
+      "sfx": [
+        {
+          "name": "crowd",
+          "at": 0.0,
+          "gain": 0.45
+        }
+      ]
+    },
+    {
+      "image": "images/shot-08.png",
+      "duration": 2.5,
+      "camera": "push_in",
+      "character_ids": [
+        "SHADOW"
+      ],
+      "narration": "Not one thank-you. Not once. Not in years.",
+      "image_prompt": "Close-up of the SHADOW's face: Boro's crooked hat silhouette, large pale eyes drooping sad and tired, long ink drips falling from its chin like tears. Heavy gloomy atmosphere.",
+      "angle": "closeup",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.1,
+          "x": 0.5,
+          "y": 0.5
+        },
+        {
+          "at": 1,
+          "zoom": 1.75,
+          "x": 0.5,
+          "y": 0.313
+        }
+      ],
+      "fx": [
+        "gloom"
+      ]
+    },
+    {
+      "image": "images/shot-09.png",
+      "duration": 2.5,
+      "camera": "snap_in",
+      "character_ids": [
+        "SHADOW"
+      ],
+      "narration": "Tonight, the shadow said... enough.",
+      "image_prompt": "Extreme close-up of the SHADOW's two glowing pure-white slit eyes snapping open in solid black, sharp angry pupils, radiating ink cracks around them.",
+      "angle": "extreme_closeup",
+      "fx": [
+        "focus_lines",
+        "impact"
+      ],
+      "focus": [
+        0.5,
+        0.5
+      ],
+      "sfx": [
+        {
+          "name": "heartbeat",
+          "at": 0.0,
+          "gain": 0.9
+        },
+        {
+          "name": "chime",
+          "at": 0.2,
+          "gain": 0.5
+        }
+      ],
+      "sfx_text": {
+        "text": "dokun",
+        "at": 0.05,
+        "x": 0.5,
+        "y": 0.2,
+        "size": 240,
+        "rot": -6,
+        "color": "white"
+      }
+    },
+    {
+      "image": "images/shot-10.png",
+      "duration": 2.5,
+      "camera": "crash_in",
+      "character_ids": [
+        "SHADOW",
+        "BORO"
+      ],
+      "narration": "It peeled itself right off the cobblestones.",
+      "image_prompt": "Dramatic low-angle: the SHADOW peeling up off the wet cobblestones like a sticker, still attached to Boro's boots at the bottom left; its arms and hat rise tall and menacing. Boro's tiny frightened feet in the foreground.",
+      "angle": "low",
+      "fx": [
+        "impact"
+      ],
+      "sfx_text": {
+        "text": "peel!",
+        "at": 0.1,
+        "x": 0.72,
+        "y": 0.28,
+        "size": 210,
+        "rot": 7
+      }
+    },
+    {
+      "image": "images/shot-11.png",
+      "duration": 2.5,
+      "camera": "whip_right",
+      "character_ids": [
+        "BORO",
+        "SHADOW"
+      ],
+      "narration": "Boro froze. His shadow strode onto the stage.",
+      "image_prompt": "Boro stiff and frozen in shock with wide white eyes on the left third, while the tall SHADOW strides confidently across the cobblestones toward the lit wooden stage on the right, boots stomping, speed lines.",
+      "angle": "eye",
+      "transition": "whip",
+      "fx": [
+        "speed_lines"
+      ],
+      "focus": [
+        0.72,
+        0.55
+      ],
+      "sfx_text": {
+        "text": "stomp",
+        "at": 0.35,
+        "x": 0.5,
+        "y": 0.78,
+        "size": 200,
+        "rot": -4
+      }
+    },
+    {
+      "image": "images/shot-12.png",
+      "duration": 2.5,
+      "camera": "dutch_push",
+      "character_ids": [
+        "SHADOW"
+      ],
+      "narration": "And it performed a dazzling show of its own!",
+      "image_prompt": "The SHADOW centre stage in a blazing spotlight, arms flung wide, juggling glowing lanterns while ink birds and gold coins swirl in a spiral around it, spotlight beams slicing the dark, awe and magic.",
+      "angle": "low",
+      "sfx": [
+        {
+          "name": "chime",
+          "at": 0.1,
+          "gain": 0.8
+        }
+      ]
+    },
+    {
+      "image": "images/shot-13.png",
+      "duration": 2.5,
+      "camera": "shake_hold",
+      "character_ids": [
+        "MARKET"
+      ],
+      "narration": "The crowd went absolutely wild.",
+      "image_prompt": "Roaring ecstatic crowd with open mouths, wide shining eyes and arms thrown up in the air, confetti and flying hats, dense faces packed edge to edge, explosive energy.",
+      "angle": "eye",
+      "fx": [
+        "focus_lines"
+      ],
+      "focus": [
+        0.5,
+        0.5
+      ],
+      "sfx": [
+        {
+          "name": "crowd",
+          "at": 0.0,
+          "gain": 0.9
+        }
+      ],
+      "sfx_text": {
+        "text": "waaah!",
+        "at": 0.1,
+        "x": 0.5,
+        "y": 0.84,
+        "size": 230,
+        "rot": 4
+      }
+    },
+    {
+      "image": "images/shot-14.png",
+      "duration": 2.5,
+      "camera": "crash_in",
+      "character_ids": [
+        "BORO"
+      ],
+      "narration": "Boro rushed forward to steal it back, and tripped over his own coat!",
+      "image_prompt": "Boro rushed forward to steal the show back, tripped in a desperate dive with arms stretched out, his oversized patchwork coat tangled around his thin legs, mid-fall in the air above the wet cobblestones, hat flying off, panicked face.",
+      "angle": "dutch",
+      "fx": [
+        "speed_lines"
+      ],
+      "focus": [
+        0.5,
+        0.5
+      ],
+      "sfx_text": {
+        "text": "whoa!",
+        "at": 1.6,
+        "x": 0.3,
+        "y": 0.2,
+        "size": 200,
+        "rot": -9
+      }
+    },
+    {
+      "image": "images/shot-15.png",
+      "duration": 2.5,
+      "camera": "pull_out",
+      "character_ids": [
+        "BORO"
+      ],
+      "narration": "Flat on the cobbles. Hat still rolling away.",
+      "image_prompt": "Bird's-eye view straight down: Boro lying flat on his face spread-eagled on the wet cobblestones, his top hat spinning away across the ground with a trail of motion lines, a few coins scattered, tiny comic stars.",
+      "angle": "birdseye",
+      "fx": [
+        "impact"
+      ],
+      "sfx_text": {
+        "text": "thud!",
+        "at": 0.05,
+        "x": 0.5,
+        "y": 0.2,
+        "size": 260,
+        "rot": -5
+      }
+    },
+    {
+      "image": "images/shot-16.png",
+      "duration": 2.5,
+      "camera": "tilt_down",
+      "character_ids": [
+        "SHADOW"
+      ],
+      "narration": "His shadow just looked down, and pointed at a broom.",
+      "image_prompt": "Extreme low angle: the tower-tall SHADOW glaring down with white eyes and pointing one long black finger straight down toward a plain wooden broom lying on the cobblestones in the lower right foreground.",
+      "angle": "worm",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.25,
+          "x": 0.5,
+          "y": 0
+        },
+        {
+          "at": 0.6,
+          "zoom": 1.3,
+          "x": 0.717,
+          "y": 0.5
+        },
+        {
+          "at": 1,
+          "zoom": 1.5,
+          "x": 1,
+          "y": 1
+        }
+      ],
+      "sfx": [
+        {
+          "name": "heartbeat",
+          "at": 0.2,
+          "gain": 0.7
+        }
+      ]
+    },
+    {
+      "image": "images/shot-17.png",
+      "duration": 2.5,
+      "camera": "pull_out",
+      "character_ids": [
+        "BORO",
+        "SHADOW"
+      ],
+      "narration": "The message was clear. The magician was now the assistant.",
+      "image_prompt": "Boro, now the shadow's assistant (the magician reduced to a stagehand with a clear message), kneeling bottom-left in the dust looking up, holding the wooden broom awkwardly, while the SHADOW takes the spotlight at the right of the stage, regal; contrast of status, spotlight on the shadow.",
+      "angle": "high"
+    },
+    {
+      "image": "images/shot-18.png",
+      "duration": 2.5,
+      "camera": "drift_roll",
+      "character_ids": [
+        "BORO"
+      ],
+      "narration": "Boro picked up the broom.",
+      "image_prompt": "Close-up of Boro's face: pointed nose, curled moustache, gold tooth showing through a trembling forced grimace, eye twitching, one big sweat drop sliding down, hands gripping the broom handle in the foreground.",
+      "angle": "closeup",
+      "fx": [
+        "gloom"
+      ]
+    },
+    {
+      "image": "images/shot-13.png",
+      "duration": 2.5,
+      "camera": "pull_out",
+      "character_ids": [
+        "SHADOW",
+        "BORO",
+        "MARKET"
+      ],
+      "narration": "The crowd gave a standing ovation, and every cheer was for the shadow.",
+      "image_prompt": "Grand tableau: the whole market crowd on its feet in a standing ovation with raised arms, paper-confetti storm, the SHADOW taking a magnificent bow centre stage in dazzling spotlights while Boro stands small at the stage edge holding the broom.",
+      "angle": "wide",
+      "fx": [
+        "flash"
+      ],
+      "sfx": [
+        {
+          "name": "crowd",
+          "at": 0.0,
+          "gain": 1.0
+        },
+        {
+          "name": "chime",
+          "at": 0.2,
+          "gain": 0.6
+        }
+      ],
+      "sfx_text": {
+        "text": "bravo!",
+        "at": 0.15,
+        "x": 0.5,
+        "y": 0.1,
+        "size": 230,
+        "rot": 5
+      }
+    },
+    {
+      "image": "images/shot-18.png",
+      "duration": 2.5,
+      "camera": "push_in",
+      "character_ids": [
+        "BORO",
+        "SHADOW"
+      ],
+      "narration": "Boro forced a smile. The show must go on, even when it isn't yours.",
+      "image_prompt": "Boro's forced crooked smile in sharp focus in the foreground, one eyebrow twitching; behind him, slightly out of focus, the SHADOW lifts Boro's crooked top hat off his head and puts it on its own, the cheering crowd glowing behind.",
+      "angle": "over_shoulder",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.1,
+          "x": 0,
+          "y": 0.5
+        },
+        {
+          "at": 1,
+          "zoom": 1.6,
+          "x": 0.233,
+          "y": 0.233
+        }
+      ],
+      "pause": 1.4
+    }
+  ],
+  "narration": "Two thirteen in the morning. The Midnight Market is wide awake. Boro, a little street magician with big dreams and a crooked hat, takes his bow. But behind him, his shadow does every difficult trick. It catches the falling coins. It balances the lanterns. It even makes impossible birds dance across the walls. And who gets the applause? Boro. Every single time. Not one thank-you. Not once. Not in years. Tonight, the shadow said... enough. It peeled itself right off the cobblestones. Boro froze. His shadow strode onto the stage. And it performed a dazzling show of its own! The crowd went absolutely wild. Boro rushed forward to steal it back, and tripped over his own coat! Flat on the cobbles. Hat still rolling away. His shadow just looked down, and pointed at a broom. The message was clear. The magician was now the assistant. Boro picked up the broom. The crowd gave a standing ovation, and every cheer was for the shadow. Boro forced a smile. The show must go on, even when it isn't yours."
+}

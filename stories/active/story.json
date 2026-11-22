@@ -1,9 +1,12 @@
 {
-  "title": "The Shadow That Quit",
-  "episode_id": "FD-01",
-  "render_revision": 17,
+  "title": "The Twelfth Stop",
+  "episode_id": "HR-01",
+  "render_revision": 1,
   "render_style": "manga",
   "mood": "horror",
+  "ambience": [
+    "rain"
+  ],
   "manga": {
     "tone": true,
     "grain": true,
@@ -15,82 +18,41 @@
     "height": 1920,
     "fps": 30
   },
-  "style_lock": "Black-and-white Japanese manga artwork, seinen/shonen style: bold clean G-pen ink linework, solid black fills, dense cross-hatching, 45-degree screentone dots for shading, dramatic speed lines, big expressive anime eyes, cinematic panel composition, high contrast. Monochrome only, no colour, no text, no speech bubbles, no panel borders.",
+  "style_lock": "Black-and-white Japanese horror manga artwork: heavy ink linework, deep solid black shadows, dense cross-hatching, 45-degree screentone dots, eerie gothic atmosphere, fog drawn with fine hatch lines, unsettling expressive faces, high contrast. Monochrome only, no colour, no text, no speech bubbles, no panel borders, no split panels.",
   "character_bible": {
-    "BORO": {
+    "MARA": {
       "kind": "character",
-      "visual_identity": "Boro: short hunched adult street magician, pointed nose, big deep-set eyes, thin curled moustache, one gold tooth, oversized angular patchwork coat, crooked tall top hat tied with a thread, silver glove on left hand, striped trousers, mismatched boots. Keep his face, proportions, costume and signature details identical in every panel.",
-      "prompt_tag": "short hunched adult street magician, pointed nose, big deep-set eyes, thin curled moustache, one gold tooth, oversized angular patchwork coat, crooked tall top hat tied with a thread, silver glove on left hand, striped trousers, mismatched boots",
-      "reference_image": "images/character-boro-reference.png",
-      "reference_prompt": "Manga character design sheet for Boro: full-body three-quarter standing view plus a separate clear face portrait inset, plain white background, clean ink linework with screentone shading. Make him instantly recognisable and reusable across scenes."
+      "visual_identity": "Mara: weary woman in her fifties, long grey braid over one shoulder, deep tired eye bags, sharp cheekbones, dark bus-driver uniform jacket, flat cap, reflective vest. Same face, braid and uniform in every panel.",
+      "prompt_tag": "weary woman in her fifties, long grey braid over one shoulder, deep tired eye bags, sharp cheekbones, dark bus-driver uniform jacket, flat cap, reflective vest",
+      "reference_image": "images/character-mara-reference.png",
+      "reference_prompt": "Horror manga character design sheet for Mara the night-bus driver: full-body three-quarter standing view plus a clear face portrait inset, plain white background, heavy ink linework and screentone."
     },
-    "SHADOW": {
+    "TALLY": {
       "kind": "character",
-      "visual_identity": "The living shadow: Boro's living shadow, tall solid-black ink silhouette in Boro's crooked hat and coat outline, long thin limbs, glowing pure-white slit eyes, thin sharp grin, wisps of ink smoke. Always the same design in every panel: solid black body, same hat and coat outline, same white eyes.",
-      "prompt_tag": "Boro's living shadow, tall solid-black ink silhouette in Boro's crooked hat and coat outline, long thin limbs, glowing pure-white slit eyes, thin sharp grin, wisps of ink smoke",
-      "reference_image": "images/character-shadow-reference.png",
-      "reference_prompt": "ONE single full-body figure only, centred on a plain white background: a living shadow that is a flat solid-black ink silhouette with no clothing detail, no human face and no skin, wearing the outline of a crooked top hat and long coat, with only two glowing white slit eyes and a thin white grin. No inset, no extra views, no text, no panels."
+      "visual_identity": "The Tally Man: extremely tall gaunt figure in a long ragged black coat that drips water, wide ragged-brimmed hat hiding his entire face in solid black shadow, unnaturally long thin pale fingers, carries a long wooden stick covered in notches. Face is never visible, only black shadow under the hat.",
+      "prompt_tag": "extremely tall gaunt figure in a long ragged black coat that drips water, wide ragged-brimmed hat hiding his entire face in solid black shadow, unnaturally long thin pale fingers, carries a long wooden stick covered in notches",
+      "reference_image": "images/character-tally-reference.png",
+      "reference_prompt": "ONE single full-body figure on a plain white background: extremely tall gaunt figure in a long ragged black coat that drips water, wide ragged-brimmed hat hiding his entire face in solid black shadow, unnaturally long thin pale fingers, carries a long wooden stick covered in notches. Horror manga ink style. No inset, no extra views, no text."
     },
-    "MARKET": {
+    "HOLLOW": {
       "kind": "location",
-      "visual_identity": "The Midnight Market: crowded night bazaar between crooked old buildings, strings of paper lanterns, wet cobblestones, a tall crooked clock tower, striped shop awnings, drifting mist, one lone spotlight on a small wooden stage. Keep the same architecture and lighting.",
-      "prompt_tag": "crowded night bazaar between crooked old buildings, strings of paper lanterns, wet cobblestones, a tall crooked clock tower, striped shop awnings, drifting mist, one lone spotlight on a small wooden stage",
-      "reference_image": "images/location-market-reference.png",
-      "reference_prompt": "Manga background plate of the Midnight Market, wide establishing view, detailed ink linework and screentone."
+      "visual_identity": "The Hollow Mile: Route Nine on the Hollow Mile at night: an old rounded single-decker bus, empty rural road, thick fog, bare twisted trees, constant rain, one flickering lamp above a lone wooden bus shelter. Keep the same bus design and lighting.",
+      "prompt_tag": "Route Nine on the Hollow Mile at night: an old rounded single-decker bus, empty rural road, thick fog, bare twisted trees, constant rain, one flickering lamp above a lone wooden bus shelter",
+      "reference_image": "images/location-hollow-reference.png",
+      "reference_prompt": "Horror manga background plate of Route Nine on the Hollow Mile, wide establishing view, detailed ink linework and screentone."
     }
   },
   "shots": [
     {
       "image": "images/shot-01.png",
       "duration": 2.5,
-      "camera": "tilt_down",
-      "character_ids": [
-        "MARKET",
-        "BORO"
-      ],
-      "narration": "Two thirteen in the morning. The Midnight Market is wide awake.",
-      "image_prompt": "The Midnight Market wide awake at 2:13 in the morning. Tall crooked clock tower top centre with hands at 2:13, strings of lanterns, the crowded bazaar below, tiny Boro alone under a spotlight on a small stage at bottom centre performing a card trick. Deep perspective, mist.",
-      "angle": "wide",
-      "camera_path": [
-        {
-          "at": 0,
-          "zoom": 1.25,
-          "x": 0.5,
-          "y": 0
-        },
-        {
-          "at": 0.6,
-          "zoom": 1.32,
-          "x": 0.5,
-          "y": 0.294
-        },
-        {
-          "at": 1,
-          "zoom": 1.6,
-          "x": 0.5,
-          "y": 1
-        }
-      ],
-      "transition": "dip",
-      "sfx_text": {
-        "text": "tick",
-        "at": 0.3,
-        "x": 0.76,
-        "y": 0.2,
-        "size": 190,
-        "rot": 8
-      }
-    },
-    {
-      "image": "images/shot-02.png",
-      "duration": 2.5,
       "camera": "push_in",
       "character_ids": [
-        "BORO"
+        "HOLLOW"
       ],
-      "narration": "Boro, a little street magician with big dreams and a crooked hat, takes his bow.",
-      "image_prompt": "Boro, a little street magician and conjuror with big dreams, takes a theatrical bow with his hat held out in his silver glove, proud grin showing the gold tooth, full body centred in the spotlight, lantern-lit market crowd blurred behind him.",
-      "angle": "eye",
+      "narration": "Route Nine crosses the Hollow Mile after midnight. Every driver knows the one rule.",
+      "image_prompt": "A tiny old bus with glowing headlights crawling along an empty wet road through thick fog, bare twisted trees leaning over it, rain, vast empty darkness. The bus is small in the lower centre.",
+      "angle": "wide",
       "camera_path": [
         {
           "at": 0,
@@ -100,96 +62,200 @@
         },
         {
           "at": 1,
-          "zoom": 1.55,
+          "zoom": 1.5,
           "x": 0.5,
-          "y": 0.105
+          "y": 0.86
+        }
+      ],
+      "transition": "dip",
+      "fx": [
+        "gloom"
+      ]
+    },
+    {
+      "image": "images/shot-02.png",
+      "duration": 2.5,
+      "camera": "push_in",
+      "character_ids": [
+        "HOLLOW"
+      ],
+      "narration": "Never stop after the twelfth stop. Not for anyone.",
+      "image_prompt": "A lone wooden bus shelter with an empty bench under a single flickering lamp, rain and fog all around it, wet road in the foreground, nobody there. The shelter is in the centre.",
+      "angle": "low",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.0,
+          "x": 0.5,
+          "y": 0.5
+        },
+        {
+          "at": 1,
+          "zoom": 1.6,
+          "x": 0.5,
+          "y": 0.5
         }
       ]
     },
     {
       "image": "images/shot-03.png",
       "duration": 2.5,
-      "camera": "push_in",
+      "camera": "drift_roll",
       "character_ids": [
-        "BORO",
-        "SHADOW"
+        "MARA"
       ],
-      "narration": "But behind him, his shadow does every difficult trick.",
-      "image_prompt": "Over-the-shoulder view: Boro's back and hat in the lower-left foreground, bowing; on the brick wall behind him his huge black SHADOW works hard with arms outstretched, catching gold coins falling from the dark above. The shadow is in the upper-right.",
-      "angle": "over_shoulder",
+      "narration": "Mara had driven this route for twenty years, and she had never once broken it.",
+      "image_prompt": "Mara in profile at the bus steering wheel, tired eyes fixed on the road ahead, rain-streaked windscreen glowing faintly behind her, dim dashboard light on her face.",
+      "angle": "closeup"
+    },
+    {
+      "image": "images/shot-04.png",
+      "duration": 2.5,
+      "camera": "pan_right",
+      "character_ids": [
+        "HOLLOW",
+        "MARA"
+      ],
+      "narration": "Tonight, rain hammered the roof, and the bus was empty.",
+      "image_prompt": "Interior of the old bus looking down the long aisle from the back: rows of empty seats, rain streaming down the dark windows, dim flickering ceiling lights, tiny Mara alone at the driver's seat at the far end.",
+      "angle": "wide",
       "camera_path": [
         {
           "at": 0,
-          "zoom": 1.45,
-          "x": 0.339,
-          "y": 0
+          "zoom": 1.3,
+          "x": 0,
+          "y": 0.717
         },
         {
           "at": 1,
-          "zoom": 1.9,
-          "x": 0.753,
-          "y": 0
+          "zoom": 1.5,
+          "x": 0.5,
+          "y": 0.44
         }
+      ]
+    },
+    {
+      "image": "images/shot-05.png",
+      "duration": 2.5,
+      "camera": "pan_left",
+      "character_ids": [
+        "HOLLOW",
+        "MARA"
+      ],
+      "narration": "At the twelfth stop, an empty shelter flickered under a single lamp. Mara drove straight past.",
+      "image_prompt": "View through the bus side window and windscreen: the empty bus shelter under its flickering lamp sliding past on the right in fog and rain, motion streaks, Mara's gloved hands tight on the wheel in the foreground.",
+      "angle": "eye",
+      "fx": [
+        "speed_lines"
+      ],
+      "focus": [
+        0.3,
+        0.5
+      ]
+    },
+    {
+      "image": "images/shot-06.png",
+      "duration": 2.5,
+      "camera": "snap_in",
+      "character_ids": [
+        "MARA"
+      ],
+      "narration": "Then she glanced up at the mirror.",
+      "image_prompt": "Extreme close-up of the bus rear-view mirror with the dim interior of the bus reflected inside it, Mara's tired eye reflected at its edge, rain light glinting.",
+      "angle": "extreme_closeup",
+      "sfx": [
+        {
+          "name": "heartbeat",
+          "at": 0.1,
+          "gain": 0.6
+        }
+      ]
+    },
+    {
+      "image": "images/shot-07.png",
+      "duration": 2.5,
+      "camera": "snap_in",
+      "character_ids": [
+        "TALLY"
+      ],
+      "narration": "Someone was sitting in the back seat.",
+      "image_prompt": "The last row of the dark bus seen small and far away at the end of the aisle: a tall black silhouette sitting perfectly upright in the back seat, wide ragged hat, no face, absolute stillness, dim light.",
+      "angle": "eye",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.1,
+          "x": 0.5,
+          "y": 0
+        },
+        {
+          "at": 0.25,
+          "zoom": 1.8,
+          "x": 0.5,
+          "y": 0.275
+        },
+        {
+          "at": 1,
+          "zoom": 2.0,
+          "x": 0.5,
+          "y": 0.3
+        }
+      ],
+      "fx": [
+        "focus_lines",
+        "impact"
+      ],
+      "focus": [
+        0.5,
+        0.4
       ],
       "sfx": [
         {
-          "name": "whoosh",
+          "name": "dread_swell",
           "at": 0.0,
           "gain": 0.6
         }
       ]
     },
     {
-      "image": "images/shot-04.png",
+      "image": "images/shot-08.png",
       "duration": 2.5,
-      "camera": "snap_in",
+      "camera": "push_in",
       "character_ids": [
-        "SHADOW"
+        "MARA"
       ],
-      "narration": "It catches the falling coins.",
-      "image_prompt": "Extreme close-up of the SHADOW's long black ink hand catches falling gold coins out of the air, the falling coins spinning and glinting, motion streaks, dark background.",
-      "angle": "extreme_closeup",
-      "fx": [
-        "speed_lines"
-      ],
-      "focus": [
-        0.5,
-        0.5
-      ],
-      "sfx": [
-        {
-          "name": "coin",
-          "at": 0.05
-        },
-        {
-          "name": "coin",
-          "at": 0.35,
-          "gain": 0.7
-        }
-      ],
-      "sfx_text": {
-        "text": "clink!",
-        "at": 0.1,
-        "x": 0.72,
-        "y": 0.2,
-        "size": 200,
-        "rot": -10
-      }
-    },
-    {
-      "image": "images/shot-05.png",
-      "duration": 2.5,
-      "camera": "tilt_up",
-      "character_ids": [
-        "SHADOW"
-      ],
-      "narration": "It balances the lanterns.",
-      "image_prompt": "Low-angle shot of the tall SHADOW standing perfectly balanced while three glowing paper lanterns float and stack on its head, shoulders and fingertip, tower of lanterns reaching the top of the frame.",
-      "angle": "low",
+      "narration": "She had checked the doors. They had never opened.",
+      "image_prompt": "Mara glancing sideways in terror, wide eyes, sweat on her temple, one hand frozen on the wheel, the bus's folding door shut tight behind her with rain on its glass.",
+      "angle": "closeup",
       "camera_path": [
         {
           "at": 0,
-          "zoom": 1.25,
+          "zoom": 1.0,
+          "x": 0.5,
+          "y": 0.5
+        },
+        {
+          "at": 1,
+          "zoom": 1.6,
+          "x": 0.367,
+          "y": 0.18
+        }
+      ]
+    },
+    {
+      "image": "images/shot-09.png",
+      "duration": 2.5,
+      "camera": "tilt_up",
+      "character_ids": [
+        "TALLY"
+      ],
+      "narration": "He was tall and thin, in a long black coat that dripped onto the floor.",
+      "image_prompt": "The Tally Man seated in the aisle seat, impossibly tall and thin, a puddle of black water spreading on the floor under his dripping long coat, wide hat brim above, seen from a low angle.",
+      "angle": "worm",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.3,
           "x": 0.5,
           "y": 1
         },
@@ -202,205 +268,102 @@
       ]
     },
     {
-      "image": "images/shot-06.png",
+      "image": "images/shot-10.png",
       "duration": 2.5,
-      "camera": "whip_right",
+      "camera": "snap_in",
       "character_ids": [
-        "SHADOW",
-        "BORO"
+        "TALLY"
       ],
-      "narration": "It even makes impossible birds dance across the walls.",
-      "image_prompt": "Wide view of a brick wall alive with flocks of black ink-silhouette birds that dance and swoop across the wall, swirling out of the shadow's hands, the small bowing Boro and a few silhouetted onlookers at the bottom left, birds flying toward the right.",
-      "angle": "wide",
-      "transition": "whip",
-      "fx": [
-        "speed_lines"
-      ],
-      "focus": [
-        0.7,
-        0.4
-      ]
-    },
-    {
-      "image": "images/shot-07.png",
-      "duration": 2.5,
-      "camera": "pan_right",
-      "character_ids": [
-        "BORO",
-        "SHADOW"
-      ],
-      "narration": "And who gets the applause? Boro. Every single time.",
-      "image_prompt": "Crowd giving applause, clapping and cheering, Boro proudly soaking it up with a huge grin in the left-centre, while far right in the background the SHADOW slumps alone, tiny and ignored, in the dark wall.",
-      "angle": "eye",
-      "camera_path": [
-        {
-          "at": 0,
-          "zoom": 1.25,
-          "x": 0,
-          "y": 0.75
-        },
-        {
-          "at": 1,
-          "zoom": 1.5,
-          "x": 1,
-          "y": 0.74
-        }
-      ],
-      "sfx": [
-        {
-          "name": "crowd",
-          "at": 0.0,
-          "gain": 0.45
-        }
-      ]
-    },
-    {
-      "image": "images/shot-08.png",
-      "duration": 2.5,
-      "camera": "push_in",
-      "character_ids": [
-        "SHADOW"
-      ],
-      "narration": "Not one thank-you. Not once. Not in years.",
-      "image_prompt": "Close-up of the SHADOW's face: Boro's crooked hat silhouette, large pale eyes drooping sad and tired, long ink drips falling from its chin like tears. Heavy gloomy atmosphere.",
-      "angle": "closeup",
-      "camera_path": [
-        {
-          "at": 0,
-          "zoom": 1.1,
-          "x": 0.5,
-          "y": 0.5
-        },
-        {
-          "at": 1,
-          "zoom": 1.75,
-          "x": 0.5,
-          "y": 0.313
-        }
-      ],
+      "narration": "His face was hidden beneath a ragged hat, and his fingers were far too long.",
+      "image_prompt": "Extreme close-up of the Tally Man's long, pale, bony fingers wrapped around the metal seat rail, far too many knuckles, the shadow of his ragged hat brim across the top of the frame.",
+      "angle": "extreme_closeup",
       "fx": [
         "gloom"
       ]
     },
     {
-      "image": "images/shot-09.png",
-      "duration": 2.5,
-      "camera": "snap_in",
-      "character_ids": [
-        "SHADOW"
-      ],
-      "narration": "Tonight, the shadow said... enough.",
-      "image_prompt": "Extreme close-up of the SHADOW's two glowing pure-white slit eyes snapping open in solid black, sharp angry pupils, radiating ink cracks around them.",
-      "angle": "extreme_closeup",
-      "fx": [
-        "focus_lines",
-        "impact"
-      ],
-      "focus": [
-        0.5,
-        0.5
-      ],
-      "sfx": [
-        {
-          "name": "heartbeat",
-          "at": 0.0,
-          "gain": 0.9
-        },
-        {
-          "name": "chime",
-          "at": 0.2,
-          "gain": 0.5
-        }
-      ],
-      "sfx_text": {
-        "text": "dokun",
-        "at": 0.05,
-        "x": 0.5,
-        "y": 0.2,
-        "size": 240,
-        "rot": -6,
-        "color": "white"
-      }
-    },
-    {
-      "image": "images/shot-10.png",
-      "duration": 2.5,
-      "camera": "crash_in",
-      "character_ids": [
-        "SHADOW",
-        "BORO"
-      ],
-      "narration": "It peeled itself right off the cobblestones.",
-      "image_prompt": "Dramatic low-angle: the SHADOW peeling up off the wet cobblestones like a sticker, still attached to Boro's boots at the bottom left; its arms and hat rise tall and menacing. Boro's tiny frightened feet in the foreground.",
-      "angle": "low",
-      "fx": [
-        "impact"
-      ],
-      "sfx_text": {
-        "text": "peel!",
-        "at": 0.1,
-        "x": 0.72,
-        "y": 0.28,
-        "size": 210,
-        "rot": 7
-      }
-    },
-    {
       "image": "images/shot-11.png",
       "duration": 2.5,
-      "camera": "whip_right",
+      "camera": "hold",
       "character_ids": [
-        "BORO",
-        "SHADOW"
+        "TALLY"
       ],
-      "narration": "Boro froze. His shadow strode onto the stage.",
-      "image_prompt": "Boro stiff and frozen in shock with wide white eyes on the left third, while the tall SHADOW strides confidently across the cobblestones toward the lit wooden stage on the right, boots stomping, speed lines.",
-      "angle": "eye",
-      "transition": "whip",
-      "fx": [
-        "speed_lines"
-      ],
-      "focus": [
-        0.72,
-        0.55
-      ],
-      "sfx_text": {
-        "text": "stomp",
-        "at": 0.35,
-        "x": 0.5,
-        "y": 0.78,
-        "size": 200,
-        "rot": -4
-      }
-    },
-    {
-      "image": "images/shot-12.png",
-      "duration": 2.5,
-      "camera": "dutch_push",
-      "character_ids": [
-        "SHADOW"
-      ],
-      "narration": "And it performed a dazzling show of its own!",
-      "image_prompt": "The SHADOW centre stage in a blazing spotlight, arms flung wide, juggling glowing lanterns while ink birds and gold coins swirl in a spiral around it, spotlight beams slicing the dark, awe and magic.",
-      "angle": "low",
+      "narration": "Tick. Tick. Tick.",
+      "image_prompt": "Extreme close-up of a long yellowed fingernail carving a fresh notch into a wooden stick, wood shavings falling, deep shadow, hatching.",
+      "angle": "extreme_closeup",
       "sfx": [
         {
-          "name": "chime",
-          "at": 0.1,
-          "gain": 0.8
+          "name": "tick",
+          "at": 0.05,
+          "gain": 1.0
+        },
+        {
+          "name": "tick",
+          "at": 0.75,
+          "gain": 1.0
+        },
+        {
+          "name": "tick",
+          "at": 1.45,
+          "gain": 1.0
         }
       ]
     },
     {
+      "image": "images/shot-12.png",
+      "duration": 2.5,
+      "camera": "drift_roll",
+      "character_ids": [
+        "MARA",
+        "TALLY"
+      ],
+      "narration": "Mara's voice shook. Sir, this bus is out of service.",
+      "image_prompt": "Mara turning her head slightly toward the back, mouth trembling and barely open, eyes wet, in the foreground in profile; the blurred dark shape of the tall hatted figure far behind her in the mirror.",
+      "angle": "over_shoulder"
+    },
+    {
       "image": "images/shot-13.png",
       "duration": 2.5,
-      "camera": "shake_hold",
+      "camera": "push_in",
       "character_ids": [
-        "MARKET"
+        "TALLY"
       ],
-      "narration": "The crowd went absolutely wild.",
-      "image_prompt": "Roaring ecstatic crowd with open mouths, wide shining eyes and arms thrown up in the air, confetti and flying hats, dense faces packed edge to edge, explosive energy.",
-      "angle": "eye",
+      "narration": "He did not answer. He only leaned forward, and the ticking stopped.",
+      "image_prompt": "The Tally Man leaning slowly forward out of his seat into the aisle, wide hat brim dripping, long fingers gripping the seatbacks on either side, the empty aisle stretching behind him, dim light.",
+      "angle": "low",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.05,
+          "x": 0.5,
+          "y": 1
+        },
+        {
+          "at": 1,
+          "zoom": 1.6,
+          "x": 0.5,
+          "y": 0.287
+        }
+      ],
+      "sfx": [
+        {
+          "name": "creak",
+          "at": 0.4,
+          "gain": 0.7
+        }
+      ]
+    },
+    {
+      "image": "images/shot-14.png",
+      "duration": 2.5,
+      "camera": "dutch_push",
+      "character_ids": [
+        "TALLY",
+        "MARA"
+      ],
+      "narration": "She blinked. He was three rows closer.",
+      "image_prompt": "Point of view down the aisle from the driver's seat: the Tally Man now standing in the middle of the aisle, tall and still, head bowed under the hat, the empty seats and rain-streaked windows on both sides.",
+      "angle": "dutch",
       "fx": [
         "focus_lines"
       ],
@@ -410,30 +373,44 @@
       ],
       "sfx": [
         {
-          "name": "crowd",
+          "name": "heartbeat",
+          "at": 0.0,
+          "gain": 0.8
+        }
+      ]
+    },
+    {
+      "image": "images/shot-15.png",
+      "duration": 2.5,
+      "camera": "shake_hold",
+      "character_ids": [
+        "TALLY",
+        "MARA"
+      ],
+      "narration": "She blinked again. Closer.",
+      "image_prompt": "Mara's back and the top of her cap in the foreground, bottom of frame; looming directly over her shoulder just behind the driver's seat the huge shadow of the Tally Man's hat and face-void, long fingers reaching for her seat.",
+      "angle": "high",
+      "fx": [
+        "impact"
+      ],
+      "sfx": [
+        {
+          "name": "heartbeat",
           "at": 0.0,
           "gain": 0.9
         }
-      ],
-      "sfx_text": {
-        "text": "waaah!",
-        "at": 0.1,
-        "x": 0.5,
-        "y": 0.84,
-        "size": 230,
-        "rot": 4
-      }
+      ]
     },
     {
-      "image": "images/shot-14.png",
+      "image": "images/shot-16.png",
       "duration": 2.5,
       "camera": "crash_in",
       "character_ids": [
-        "BORO"
+        "MARA"
       ],
-      "narration": "Boro rushed forward to steal it back, and tripped over his own coat!",
-      "image_prompt": "Boro rushed forward to steal the show back, tripped in a desperate dive with arms stretched out, his oversized patchwork coat tangled around his thin legs, mid-fall in the air above the wet cobblestones, hat flying off, panicked face.",
-      "angle": "dutch",
+      "narration": "She slammed the accelerator to the floor.",
+      "image_prompt": "Extreme close-up of Mara's worn boot stomping the accelerator pedal to the floor, the speedometer needle pinned past the maximum glowing beside it, motion streaks.",
+      "angle": "extreme_closeup",
       "fx": [
         "speed_lines"
       ],
@@ -441,164 +418,263 @@
         0.5,
         0.5
       ],
-      "sfx_text": {
-        "text": "whoa!",
-        "at": 1.6,
-        "x": 0.3,
-        "y": 0.2,
-        "size": 200,
-        "rot": -9
-      }
-    },
-    {
-      "image": "images/shot-15.png",
-      "duration": 2.5,
-      "camera": "pull_out",
-      "character_ids": [
-        "BORO"
-      ],
-      "narration": "Flat on the cobbles. Hat still rolling away.",
-      "image_prompt": "Bird's-eye view straight down: Boro lying flat on his face spread-eagled on the wet cobblestones, his top hat spinning away across the ground with a trail of motion lines, a few coins scattered, tiny comic stars.",
-      "angle": "birdseye",
-      "fx": [
-        "impact"
-      ],
-      "sfx_text": {
-        "text": "thud!",
-        "at": 0.05,
-        "x": 0.5,
-        "y": 0.2,
-        "size": 260,
-        "rot": -5
-      }
-    },
-    {
-      "image": "images/shot-16.png",
-      "duration": 2.5,
-      "camera": "tilt_down",
-      "character_ids": [
-        "SHADOW"
-      ],
-      "narration": "His shadow just looked down, and pointed at a broom.",
-      "image_prompt": "Extreme low angle: the tower-tall SHADOW glaring down with white eyes and pointing one long black finger straight down toward a plain wooden broom lying on the cobblestones in the lower right foreground.",
-      "angle": "worm",
-      "camera_path": [
-        {
-          "at": 0,
-          "zoom": 1.25,
-          "x": 0.5,
-          "y": 0
-        },
-        {
-          "at": 0.6,
-          "zoom": 1.3,
-          "x": 0.717,
-          "y": 0.5
-        },
-        {
-          "at": 1,
-          "zoom": 1.5,
-          "x": 1,
-          "y": 1
-        }
-      ],
       "sfx": [
         {
-          "name": "heartbeat",
-          "at": 0.2,
+          "name": "engine_rev",
+          "at": 0.0,
+          "gain": 0.9
+        }
+      ],
+      "sfx_text": {
+        "text": "vrrrm",
+        "at": 0.1,
+        "x": 0.5,
+        "y": 0.2,
+        "size": 200,
+        "rot": -5,
+        "color": "white"
+      }
+    },
+    {
+      "image": "images/shot-17.png",
+      "duration": 2.5,
+      "camera": "whip_left",
+      "character_ids": [
+        "HOLLOW"
+      ],
+      "narration": "Trees tore past. Every mile marker read thirteen, and the road never ended.",
+      "image_prompt": "The bus speeding down an endless straight road through fog, bare trees streaking past as black motion lines, white roadside mile marker posts each painted with the number 13 flickering by on both sides, perspective stretching to infinity.",
+      "angle": "low",
+      "fx": [
+        "speed_lines"
+      ],
+      "focus": [
+        0.5,
+        0.45
+      ],
+      "transition": "whip"
+    },
+    {
+      "image": "images/shot-18.png",
+      "duration": 2.5,
+      "camera": "pan_right",
+      "character_ids": [
+        "TALLY"
+      ],
+      "narration": "Then she saw what he carried: a long wooden stick, covered in notches.",
+      "image_prompt": "In the rear-view mirror: the Tally Man standing behind her holding upright a long wooden stick whose entire length is covered in rows of cut notches that glint in the dim light, the black hat looming above.",
+      "angle": "over_shoulder"
+    },
+    {
+      "image": "images/shot-19.png",
+      "duration": 2.5,
+      "camera": "push_in",
+      "character_ids": [
+        "TALLY"
+      ],
+      "narration": "Hundreds of notches. One for every driver who ever stopped.",
+      "image_prompt": "Extreme close-up of the surface of the wooden stick packed with hundreds of tiny carved notches in neat rows, some old and weathered, the last few fresh and pale, dramatic raking light.",
+      "angle": "extreme_closeup",
+      "sfx": [
+        {
+          "name": "whisper",
+          "at": 0.6,
           "gain": 0.7
         }
       ]
     },
     {
-      "image": "images/shot-17.png",
+      "image": "images/shot-20.png",
       "duration": 2.5,
-      "camera": "pull_out",
+      "camera": "tilt_down",
       "character_ids": [
-        "BORO",
-        "SHADOW"
+        "HOLLOW"
       ],
-      "narration": "The message was clear. The magician was now the assistant.",
-      "image_prompt": "Boro, now the shadow's assistant (the magician reduced to a stagehand with a clear message), kneeling bottom-left in the dust looking up, holding the wooden broom awkwardly, while the SHADOW takes the spotlight at the right of the stage, regal; contrast of status, spotlight on the shadow.",
-      "angle": "high"
-    },
-    {
-      "image": "images/shot-18.png",
-      "duration": 2.5,
-      "camera": "drift_roll",
-      "character_ids": [
-        "BORO"
+      "narration": "And Mara remembered. Years ago, in the rain, she had stopped once, for a child at the twelfth stop.",
+      "image_prompt": "Flashback: a small child in a hooded raincoat standing alone under the flickering lamp in the bus shelter, an old bus with open doors glowing at the kerb, heavy rain, fog, bleak and sad.",
+      "angle": "high",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.3,
+          "x": 0.5,
+          "y": 0
+        },
+        {
+          "at": 1,
+          "zoom": 1.5,
+          "x": 0.5,
+          "y": 1
+        }
       ],
-      "narration": "Boro picked up the broom.",
-      "image_prompt": "Close-up of Boro's face: pointed nose, curled moustache, gold tooth showing through a trembling forced grimace, eye twitching, one big sweat drop sliding down, hands gripping the broom handle in the foreground.",
-      "angle": "closeup",
       "fx": [
         "gloom"
       ]
     },
     {
-      "image": "images/shot-13.png",
-      "duration": 2.5,
-      "camera": "pull_out",
-      "character_ids": [
-        "SHADOW",
-        "BORO",
-        "MARKET"
-      ],
-      "narration": "The crowd gave a standing ovation, and every cheer was for the shadow.",
-      "image_prompt": "Grand tableau: the whole market crowd on its feet in a standing ovation with raised arms, paper-confetti storm, the SHADOW taking a magnificent bow centre stage in dazzling spotlights while Boro stands small at the stage edge holding the broom.",
-      "angle": "wide",
-      "fx": [
-        "flash"
-      ],
-      "sfx": [
-        {
-          "name": "crowd",
-          "at": 0.0,
-          "gain": 1.0
-        },
-        {
-          "name": "chime",
-          "at": 0.2,
-          "gain": 0.6
-        }
-      ],
-      "sfx_text": {
-        "text": "bravo!",
-        "at": 0.15,
-        "x": 0.5,
-        "y": 0.1,
-        "size": 230,
-        "rot": 5
-      }
-    },
-    {
-      "image": "images/shot-18.png",
+      "image": "images/shot-21.png",
       "duration": 2.5,
       "camera": "push_in",
       "character_ids": [
-        "BORO",
-        "SHADOW"
+        "HOLLOW"
       ],
-      "narration": "Boro forced a smile. The show must go on, even when it isn't yours.",
-      "image_prompt": "Boro's forced crooked smile in sharp focus in the foreground, one eyebrow twitching; behind him, slightly out of focus, the SHADOW lifts Boro's crooked top hat off his head and puts it on its own, the cheering crowd glowing behind.",
-      "angle": "over_shoulder",
+      "narration": "But the child never wanted a ride. She wanted a driver.",
+      "image_prompt": "Close-up of the child's pale face under the dark raincoat hood, enormous unblinking black eyes, a thin smile that is far too wide, rain dripping off the hood, unsettling and wrong.",
+      "angle": "closeup",
       "camera_path": [
         {
           "at": 0,
           "zoom": 1.1,
-          "x": 0,
+          "x": 0.5,
+          "y": 0
+        },
+        {
+          "at": 1,
+          "zoom": 1.8,
+          "x": 0.5,
+          "y": 0.275
+        }
+      ],
+      "fx": [
+        "focus_lines"
+      ],
+      "focus": [
+        0.5,
+        0.4
+      ],
+      "sfx": [
+        {
+          "name": "whisper",
+          "at": 0.4,
+          "gain": 0.8
+        }
+      ]
+    },
+    {
+      "image": "images/shot-22.png",
+      "duration": 2.5,
+      "camera": "pull_out",
+      "character_ids": [
+        "HOLLOW"
+      ],
+      "narration": "The bus rolled to a stop. The doors opened by themselves.",
+      "image_prompt": "The old bus stopped beside the lonely shelter in fog and rain, its folding doors swung wide open onto a glowing black interior, headlights lighting the mist, nobody in sight.",
+      "angle": "wide",
+      "sfx": [
+        {
+          "name": "creak",
+          "at": 0.9,
+          "gain": 0.8
+        }
+      ]
+    },
+    {
+      "image": "images/shot-23.png",
+      "duration": 2.5,
+      "camera": "snap_in",
+      "character_ids": [
+        "TALLY"
+      ],
+      "narration": "The Tally Man carved one final notch.",
+      "image_prompt": "Extreme close-up of the pale long fingers pressing a freshly carved notch into the wooden stick, wood chips flying, deep black background, one thin ray of light.",
+      "angle": "extreme_closeup",
+      "fx": [
+        "impact"
+      ],
+      "sfx": [
+        {
+          "name": "tick",
+          "at": 0.5,
+          "gain": 1.1
+        }
+      ]
+    },
+    {
+      "image": "images/shot-24.png",
+      "duration": 2.5,
+      "camera": "push_in",
+      "character_ids": [
+        "MARA",
+        "HOLLOW"
+      ],
+      "narration": "Now Mara waits in the shelter at the twelfth stop, soaked and smiling, watching the headlights.",
+      "image_prompt": "Mara standing very still under the flickering shelter lamp, soaked through, hair plastered to her face, a smile far too wide on her tired face, eyes empty and dark, two blurry headlight glows approaching in the fog behind her.",
+      "angle": "eye",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.0,
+          "x": 0.5,
           "y": 0.5
         },
         {
           "at": 1,
-          "zoom": 1.6,
-          "x": 0.233,
-          "y": 0.233
+          "zoom": 1.5,
+          "x": 0.5,
+          "y": 0.14,
+          "roll": -1.5
         }
       ],
-      "pause": 1.4
+      "sfx": [
+        {
+          "name": "whisper",
+          "at": 0.3,
+          "gain": 0.7
+        }
+      ]
+    },
+    {
+      "image": "images/shot-25.png",
+      "duration": 2.5,
+      "camera": "push_in",
+      "character_ids": [
+        "HOLLOW"
+      ],
+      "narration": "So if you ever drive Route Nine after midnight, and someone waits in the rain at the twelfth stop...",
+      "image_prompt": "Driver's point of view through a rain-streaked windscreen at night: wet road ahead, headlights cutting the fog, and at the roadside a small lone figure standing motionless under a flickering lamp by a bus shelter.",
+      "angle": "eye",
+      "camera_path": [
+        {
+          "at": 0,
+          "zoom": 1.0,
+          "x": 0.5,
+          "y": 0.5
+        },
+        {
+          "at": 1,
+          "zoom": 1.7,
+          "x": 0.791,
+          "y": 0.549
+        }
+      ],
+      "sfx": [
+        {
+          "name": "heartbeat",
+          "at": 0.0,
+          "gain": 0.8
+        }
+      ]
+    },
+    {
+      "image": "images/shot-26.png",
+      "duration": 2.5,
+      "camera": "snap_in",
+      "character_ids": [
+        "MARA"
+      ],
+      "narration": "Keep driving.",
+      "image_prompt": "Pitch-black frame except for two wide pale glowing eyes and a thin impossibly wide smile of a soaked woman's face lit by a failing lamp, face centred, rain, horror.",
+      "angle": "extreme_closeup",
+      "fx": [
+        "impact",
+        "focus_lines"
+      ],
+      "focus": [
+        0.5,
+        0.45
+      ],
+      "pause": 1.8
     }
   ],
-  "narration": "Two thirteen in the morning. The Midnight Market is wide awake. Boro, a little street magician with big dreams and a crooked hat, takes his bow. But behind him, his shadow does every difficult trick. It catches the falling coins. It balances the lanterns. It even makes impossible birds dance across the walls. And who gets the applause? Boro. Every single time. Not one thank-you. Not once. Not in years. Tonight, the shadow said... enough. It peeled itself right off the cobblestones. Boro froze. His shadow strode onto the stage. And it performed a dazzling show of its own! The crowd went absolutely wild. Boro rushed forward to steal it back, and tripped over his own coat! Flat on the cobbles. Hat still rolling away. His shadow just looked down, and pointed at a broom. The message was clear. The magician was now the assistant. Boro picked up the broom. The crowd gave a standing ovation, and every cheer was for the shadow. Boro forced a smile. The show must go on, even when it isn't yours."
+  "narration": "Route Nine crosses the Hollow Mile after midnight. Every driver knows the one rule. Never stop after the twelfth stop. Not for anyone. Mara had driven this route for twenty years, and she had never once broken it. Tonight, rain hammered the roof, and the bus was empty. At the twelfth stop, an empty shelter flickered under a single lamp. Mara drove straight past. Then she glanced up at the mirror. Someone was sitting in the back seat. She had checked the doors. They had never opened. He was tall and thin, in a long black coat that dripped onto the floor. His face was hidden beneath a ragged hat, and his fingers were far too long. Tick. Tick. Tick. Mara's voice shook. Sir, this bus is out of service. He did not answer. He only leaned forward, and the ticking stopped. She blinked. He was three rows closer. She blinked again. Closer. She slammed the accelerator to the floor. Trees tore past. Every mile marker read thirteen, and the road never ended. Then she saw what he carried: a long wooden stick, covered in notches. Hundreds of notches. One for every driver who ever stopped. And Mara remembered. Years ago, in the rain, she had stopped once, for a child at the twelfth stop. But the child never wanted a ride. She wanted a driver. The bus rolled to a stop. The doors opened by themselves. The Tally Man carved one final notch. Now Mara waits in the shelter at the twelfth stop, soaked and smiling, watching the headlights. So if you ever drive Route Nine after midnight, and someone waits in the rain at the twelfth stop... Keep driving."
 }

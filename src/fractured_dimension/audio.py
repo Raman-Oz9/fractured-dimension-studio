@@ -187,6 +187,72 @@ def murmur(seconds: float = 3.0, seed: int = 13) -> np.ndarray:
     return (base * gate * np.sin(np.linspace(0, np.pi, base.size)) * 0.7).astype(np.float32)
 
 
+def tick(seconds: float = 0.18) -> np.ndarray:
+    """A dry wooden tick, like a thumbnail notching a stick."""
+    rng = np.random.default_rng(21)
+    t = _t(seconds)
+    click = _bandpass_noise(rng, seconds, 1100, 3800) * np.exp(-t * 70)
+    knock_body = np.sin(2 * np.pi * 740 * t) * np.exp(-t * 55) * 0.6
+    return (click + knock_body).astype(np.float32)
+
+
+def knock(seconds: float = 0.4) -> np.ndarray:
+    t = _t(seconds)
+    body = np.sin(2 * np.pi * 150 * t) * np.exp(-t * 22) + 0.5 * np.sin(2 * np.pi * 300 * t) * np.exp(-t * 30)
+    return body.astype(np.float32)
+
+
+def creak(seconds: float = 1.3) -> np.ndarray:
+    """Slow wooden/metal creak: a gliding, stuttering low saw."""
+    rng = np.random.default_rng(22)
+    t = _t(seconds)
+    freq = 170 + 90 * np.sin(np.pi * t / seconds) + 6 * np.sin(2 * np.pi * 23 * t)
+    saw = 2 * ((np.cumsum(freq) / RATE) % 1) - 1
+    stutter = np.clip(0.5 + 0.5 * np.sin(2 * np.pi * 17 * t + 2 * np.sin(2 * np.pi * 3 * t)), 0, 1) ** 2
+    shaped = _lowpass(saw.astype(np.float32) * stutter, 1400)
+    return (shaped * np.sin(np.pi * t / seconds) ** 0.8 * 0.9).astype(np.float32)
+
+
+def whisper(seconds: float = 1.8) -> np.ndarray:
+    """A close, breathy whisper: sibilant noise phrased into soft syllables."""
+    rng = np.random.default_rng(23)
+    breath = _bandpass_noise(rng, seconds, 2200, 7000) * 0.6 + _bandpass_noise(rng, seconds, 600, 2400) * 0.5
+    t = _t(seconds)[: breath.size]
+    gate = np.clip(np.sin(2 * np.pi * 3.3 * t + 0.6) + 0.35 * np.sin(2 * np.pi * 7.1 * t), 0, 1) ** 1.4
+    return (breath * gate * np.sin(np.pi * t / seconds)).astype(np.float32)
+
+
+def engine_rev(seconds: float = 2.2) -> np.ndarray:
+    """A bus engine winding up: rising harmonic-rich growl, audible on phone speakers."""
+    rng = np.random.default_rng(24)
+    t = _t(seconds)
+    freq = 38 + 80 * (t / seconds) ** 1.4
+    phase = np.cumsum(freq) / RATE
+    out = sum(np.sin(2 * np.pi * phase * k) / k ** 0.7 for k in range(1, 9))
+    out = out * (1 + 0.25 * np.sin(2 * np.pi * freq * 0.5 * t))
+    out += _bandpass_noise(rng, seconds, 200, 1500) * 0.35 * (t / seconds)
+    return (out * np.minimum(1, t / 0.25) * np.minimum(1, (seconds - t) / 0.6) * 0.4).astype(np.float32)
+
+
+def rain_layer(seconds: float, seed: int = 31) -> np.ndarray:
+    """Steady rain on a metal roof with sparse heavy drops."""
+    rng = np.random.default_rng(seed)
+    out = _bandpass_noise(rng, seconds, 1800, 9000) * 0.8 + _bandpass_noise(rng, seconds, 300, 1400) * 0.5
+    swell = 0.8 + 0.2 * np.sin(2 * np.pi * 0.09 * _t(seconds)[: out.size])
+    for _ in range(int(seconds * 1.4)):
+        drop = _bandpass_noise(rng, 0.05, 700, 3500)
+        _place(out, (drop * np.exp(-np.arange(drop.size) / (0.012 * RATE)) * 1.4).astype(np.float32), float(rng.uniform(0, seconds)))
+    return (out * swell).astype(np.float32)
+
+
+AMBIENCE = {"rain": rain_layer}
+AMBIENCE_PHONE_RMS = 0.03
+
+SFX["tick"] = tick
+SFX["knock"] = knock
+SFX["creak"] = creak
+SFX["whisper"] = whisper
+SFX["engine_rev"] = engine_rev
 SFX["riser"] = riser
 SFX["stinger"] = stinger
 SFX["air_pass"] = air_pass
@@ -491,6 +557,7 @@ def mix_soundtrack(
     sfx_events: list[tuple[float, str, float]],
     music: bool = True,
     mood: str = "mystery",
+    ambience: tuple[str, ...] = (),
 ) -> np.ndarray:
     """Build the full mix: levelled narration, ducked music bed and timed sound effects."""
     total = int((total_seconds + 0.2) * RATE)
@@ -504,6 +571,15 @@ def mix_soundtrack(
     if music:
         bed = music_bed(total_seconds + 0.2, mood)[:total]
         mix[: bed.size] += bed * duck_envelope(voice)[: bed.size]
+    for layer in ambience:
+        if layer not in AMBIENCE:
+            raise ValueError(f"Unknown ambience '{layer}'")
+        bed = AMBIENCE[layer](total_seconds + 0.2)[:total]
+        spectrum = np.fft.rfft(bed)
+        freqs = np.fft.rfftfreq(bed.size, 1 / RATE)
+        rms = float(np.sqrt(np.mean(np.fft.irfft(spectrum * (freqs > 150), bed.size) ** 2))) or 1.0
+        fade = np.minimum(1.0, np.minimum(np.arange(bed.size) / (2 * RATE), (bed.size - np.arange(bed.size)) / (2.5 * RATE)))
+        mix[: bed.size] += (bed / rms * AMBIENCE_PHONE_RMS * fade * duck_envelope(voice)[: bed.size] ** 0.5).astype(np.float32)
     for when, name, gain in sfx_events:
         if name not in SFX:
             raise ValueError(f"Unknown sound effect '{name}'")

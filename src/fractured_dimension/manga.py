@@ -511,6 +511,7 @@ def render_manga_story(story: dict[str, Any], output: str | Path) -> Path:
             build_sfx(story, timeline, mood),
             music=bool(options.get("music", True)),
             mood=mood,
+            ambience=tuple(story.get("ambience", ())),
         )
         mix_path = sound.write_wav(tmp / "mix.wav", mix)
         caption_path = tmp / "captions.ass"
