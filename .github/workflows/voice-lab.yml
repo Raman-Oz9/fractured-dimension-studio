@@ -16,23 +16,23 @@ jobs:
           sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
           python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
           python -m pip install kokoro soundfile numpy
-      - name: Generate one sample per voice
+      - name: Generate Adam and Daniel at three depths
         run: |
+          python -m pip install .
           python - <<'PY'
-          import os
+          import os, subprocess
           from pathlib import Path
-          import numpy as np, soundfile as sf
-          from kokoro import KPipeline
+          from fractured_dimension.voice import generate_voice_lines
           text = "The bus stopped at a station that was not on any map. The doors opened. And something cold stepped inside."
           out = Path("samples"); out.mkdir(exist_ok=True)
-          voices = ["am_adam","am_echo","am_eric","am_fenrir","am_liam","am_michael","am_onyx","am_puck","am_santa","bm_daniel","bm_fable","bm_george","bm_lewis"]
-          pa, pb = KPipeline(lang_code="a"), KPipeline(lang_code="b")
-          for v in voices:
-              p = pb if v.startswith("b") else pa
-              a = np.concatenate([np.asarray(r.audio.detach().cpu().numpy() if hasattr(r.audio,"detach") else r.audio).reshape(-1) for r in p(text, voice=v, speed=0.92) if r.audio is not None])
-              sf.write(str(out / f"{v}.wav"), a, 24000)
+          for voice, tag in (("am_adam", "ADAM"), ("bm_daniel", "DANIEL")):
+              for depth in (1.5, 2.5, 3.5):
+                  os.environ.update(KOKORO_VOICE=voice, KOKORO_SPEED="0.85", VOICE_DEPTH=str(depth), VOICE_STYLE="natural")
+                  name = f"{tag}-depth{depth}"
+                  wav = generate_voice_lines([text], out / "w", name)[0]
+                  subprocess.run(["ffmpeg","-y","-v","error","-i",str(wav),"-b:a","128k",str(out / f"{name}.mp3")], check=True)
           PY
-          cd samples && for f in *.wav; do ffmpeg -v error -y -i $f -b:a 128k ${f%.wav}.mp3; done
+          rm -rf samples/w
       - uses: actions/upload-artifact@v4
         with:
           name: voice-samples

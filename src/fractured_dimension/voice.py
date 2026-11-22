@@ -150,9 +150,11 @@ def deepen_voice(path: Path, semitones: float) -> Path:
     else:
         # Close, dry and clear: warmth in the chest, presence for intelligibility, air left intact.
         # No echo, no saturation, no top-end roll-off: it should sound like it is inside the phone.
+        # Deeper voices get extra chest weight; still no echo or saturation.
+        weight = 3.5 if semitones > 0 else 2.5
         chain += (
-            ",equalizer=f=120:t=h:w=150:g=2.5,equalizer=f=3200:t=q:w=1.2:g=1.5,"
-            "equalizer=f=9000:t=h:w=2000:g=1,"
+            f",equalizer=f=120:t=h:w=150:g={weight},equalizer=f=3200:t=q:w=1.2:g=1.5,"
+            "equalizer=f=9000:t=h:w=2000:g=0,"
             "acompressor=threshold=-20dB:ratio=2.5:attack=8:release=140:makeup=2"
         )
         if style == "dark":

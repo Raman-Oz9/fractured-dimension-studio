@@ -342,6 +342,15 @@ def _caption_chunks(text: str, limit: int = 4) -> list[list[str]]:
     return chunks
 
 
+def _fonts_arg() -> str:
+    """Point libass at the bundled caption font (assets/fonts) when it can be found."""
+    for base in (Path.cwd(), Path(__file__).resolve().parents[2]):
+        folder = base / "assets" / "fonts"
+        if folder.is_dir():
+            return ":fontsdir='" + folder.resolve().as_posix().replace(":", r"\:") + "'"
+    return ""
+
+
 def write_captions(timeline: list[dict[str, Any]], path: Path) -> None:
     header = """[Script Info]
 ScriptType: v4.00+
@@ -352,7 +361,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Manga,DejaVu Sans,54,&H002020D8,&H00101010,&H00FAFAFA,&H00000000,-1,0,0,0,100,100,1,0,3,16,0,2,110,110,190,1
+Style: Manga,Anton,76,&H001A1AC8,&H00111111,&H00F4F4F4,&H00000000,0,0,0,0,100,100,3,0,3,15,9,2,100,100,200,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -372,7 +381,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 cs = max(1, round((end - cursor) * ww / chunk_w * 100))
                 safe = word.upper().replace("{", r"\{").replace("}", r"\}")
                 parts.append(f"{{\\k{cs}}}{safe}")
-            events.append(f"Dialogue: 0,{_ass_time(cursor)},{_ass_time(end)},Manga,,0,0,0,,{' '.join(parts)}")
+            pop = r"{\fad(70,50)\fscx90\fscy90\t(0,130,\fscx100\fscy100)}"
+            events.append(f"Dialogue: 0,{_ass_time(cursor)},{_ass_time(end)},Manga,,0,0,0,,{pop}{' '.join(parts)}")
             cursor = end
     path.write_text(header + "\n".join(events) + "\n", encoding="utf-8")
 
@@ -526,7 +536,7 @@ def render_manga_story(story: dict[str, Any], output: str | Path) -> Path:
         command = [
             "ffmpeg", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
             "-i", str(mix_path),
-            "-vf", f"subtitles='{escaped}'",
+            "-vf", f"subtitles='{escaped}'{_fonts_arg()}",
             "-map", "0:v:0", "-map", "1:a:0",
             "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-maxrate", "8M", "-bufsize", "16M", "-pix_fmt", "yuv420p",
             "-c:a", "aac", "-b:a", "192k",
