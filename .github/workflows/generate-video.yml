@@ -210,7 +210,9 @@ jobs:
           set -e
           D="$(dirname "$STORY_PATH")"
           rm -rf /tmp/pub && mkdir -p /tmp/pub/images
-          cp output/fractured-dimension-short.mp4 output/fractured-dimension-short.timeline.json /tmp/pub/ 2>/dev/null || true
+          cp output/fractured-dimension-short.timeline.json /tmp/pub/ 2>/dev/null || true
+          # GitHub rejects files over 100 MB: publish a 720p preview (the full 1080p file stays in the run artifacts).
+          ffmpeg -v error -y -i output/fractured-dimension-short.mp4 -vf scale=720:1280 -c:v libx264 -preset fast -crf 25 -maxrate 3M -bufsize 6M -c:a copy -movflags +faststart /tmp/pub/fractured-dimension-preview.mp4 || true
           cp "$D"/images/*.png /tmp/pub/images/ 2>/dev/null || true
           cp "$D"/generation-report.json /tmp/pub/ 2>/dev/null || true
           cp voice-lab.mp3 /tmp/pub/ 2>/dev/null || true
