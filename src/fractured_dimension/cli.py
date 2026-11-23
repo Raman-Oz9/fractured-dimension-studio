@@ -24,6 +24,10 @@ def main() -> None:
     render.add_argument("story")
     render.add_argument("--output", required=True)
 
+    publish = sub.add_parser("publish", help="Upload a rendered video to YouTube (needs YT_* secrets)")
+    publish.add_argument("story")
+    publish.add_argument("video")
+
     args = parser.parse_args()
     if args.command == "create-example":
         path = create_example(args.output)
@@ -37,6 +41,13 @@ def main() -> None:
         story = load_story(args.story)
         result = render_story(story, args.output)
         print(f"Rendered video: {result}")
+    elif args.command == "publish":
+        from pathlib import Path
+
+        from .youtube import publish as publish_video
+
+        timeline = Path(args.video).with_suffix(".timeline.json")
+        publish_video(args.story, args.video, timeline)
 
 
 if __name__ == "__main__":

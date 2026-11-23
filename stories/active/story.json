@@ -1,7 +1,7 @@
 {
   "title": "The Twelfth Stop",
   "episode_id": "HR-01",
-  "render_revision": 6,
+  "render_revision": 7,
   "render_style": "manga",
   "mood": "horror",
   "ambience": [],
@@ -416,6 +416,7 @@
         0.5,
         0.5
       ],
+      "lead": 0.45,
       "sfx": [
         {
           "name": "engine_rev",
@@ -544,10 +545,16 @@
       "narration": "The bus rolled to a stop. The doors opened by themselves.",
       "image_prompt": "The old bus stopped beside the lonely shelter in fog and rain, its folding doors swung wide open onto a glowing black interior, headlights lighting the mist, nobody in sight.",
       "angle": "wide",
+      "lead": 0.7,
       "sfx": [
         {
+          "name": "brake",
+          "at": 0.0,
+          "gain": 0.7
+        },
+        {
           "name": "creak",
-          "at": 0.9,
+          "at": 1.6,
           "gain": 0.5
         }
       ]

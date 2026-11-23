@@ -250,6 +250,19 @@ AMBIENCE_PHONE_RMS = 0.008
 
 SFX["tick"] = tick
 SFX["knock"] = knock
+def brake(seconds: float = 1.5) -> np.ndarray:
+    """Heavy bus air-brake: a short squeal gliding down, then a soft pneumatic hiss."""
+    rng = np.random.default_rng(31)
+    t = _t(seconds)
+    freq = 520 - 230 * np.clip(t / 0.9, 0, 1)
+    squeal = np.sin(2 * np.pi * np.cumsum(freq) / RATE) + 0.4 * np.sin(4 * np.pi * np.cumsum(freq) / RATE)
+    squeal = _lowpass(squeal.astype(np.float32), 1800) * np.exp(-t / 0.55) * 0.35
+    hiss = _bandpass_noise(rng, seconds, 2500, 7500) * np.clip((t - 0.35) / 0.1, 0, 1) * np.exp(-(t - 0.35).clip(0) / 0.5) * 0.5
+    thud = np.sin(2 * np.pi * 55 * t) * np.exp(-t / 0.18) * 0.5
+    return (squeal + hiss + thud).astype(np.float32)
+
+
+SFX["brake"] = brake
 SFX["creak"] = creak
 SFX["whisper"] = whisper
 SFX["engine_rev"] = engine_rev
@@ -267,7 +280,7 @@ TENSE_SFX_MAP: dict[str, str | None] = {
     "coin": None, "crowd": None, "riser": None, "air_pass": None, "murmur": None,
 }
 TENSE_SFX_GAIN = 0.7
-SPEECH_BAND_SFX = {"whisper", "creak", "engine_rev", "dread_swell", "murmur", "crowd", "chime"}
+SPEECH_BAND_SFX = {"brake", "whisper", "creak", "engine_rev", "dread_swell", "murmur", "crowd", "chime"}
 
 
 # ----------------------------------------------------------------------------- mood beds

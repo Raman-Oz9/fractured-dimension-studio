@@ -17,7 +17,7 @@ _MANGA_MOVES = {
 _FX = {"speed_lines", "focus_lines", "impact", "gloom", "flash"}
 _TRANSITIONS = {"cut", "whip", "flash", "dip"}
 _EASES = {"smooth", "snap", "linear", "in"}
-_SFX = {"whoosh", "whoosh_back", "impact", "chime", "coin", "crowd", "heartbeat", "riser", "stinger", "tick", "knock", "creak", "whisper", "engine_rev", "dread_swell", "sub_hit"}
+_SFX = {"whoosh", "whoosh_back", "impact", "chime", "coin", "crowd", "heartbeat", "riser", "stinger", "tick", "knock", "creak", "whisper", "engine_rev", "dread_swell", "sub_hit", "brake"}
 _MOODS = {"auto", "mystery", "horror", "documentary_dark", "thriller", "dark_comedy", "comedy", "epic", "sad", "wonder"}
 ANGLES = {
     "eye": "eye-level medium shot",

@@ -53,6 +53,17 @@ on:
         type: choice
         options: [auto, horror, documentary_dark, thriller, mystery, dark_comedy, comedy, epic, sad, wonder]
         default: auto
+      publish:
+        description: Upload the finished video to YouTube (none = do not upload)
+        required: false
+        type: choice
+        options: [none, private, unlisted, public]
+        default: none
+      publish_at:
+        description: Optional schedule, UTC, e.g. 2026-11-24T16:00:00Z (video stays private until then)
+        required: false
+        type: string
+        default: ""
       voice_backend:
         description: Narration engine
         required: true
@@ -166,6 +177,18 @@ jobs:
 
       - name: Render vertical video with narration
         run: fractured-dimension render "$STORY_PATH" --output output/fractured-dimension-short.mp4
+
+      - name: Upload to YouTube
+        if: ${{ inputs.publish && inputs.publish != 'none' }}
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          YT_PRIVACY: ${{ inputs.publish }}
+          YT_PUBLISH_AT: ${{ inputs.publish_at }}
+        run: |
+          test -n "$YT_REFRESH_TOKEN" || (echo "::error::Add the YT_CLIENT_ID, YT_CLIENT_SECRET and YT_REFRESH_TOKEN secrets (see docs/youtube-setup.md)." && exit 1)
+          fractured-dimension publish "$STORY_PATH" output/fractured-dimension-short.mp4
 
       - name: Upload generated video
         uses: actions/upload-artifact@v4

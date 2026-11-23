@@ -125,3 +125,17 @@ def test_deepen_voice_keeps_length_and_lowers_pitch(tmp_path):
     assert abs(data.size - 24000) < 600
     spectrum = np.abs(np.fft.rfft(data))
     assert np.argmax(spectrum) * 24000 / data.size < 190
+
+
+def test_youtube_metadata_and_srt(monkeypatch):
+    from fractured_dimension import youtube
+
+    monkeypatch.delenv("YT_PUBLISH_AT", raising=False)
+    monkeypatch.setenv("YT_PRIVACY", "unlisted")
+    meta = youtube.build_metadata({"title": "The Twelfth Stop", "shots": [{"narration": "Route Nine crosses the Hollow Mile."}]})
+    assert meta["snippet"]["title"].endswith("#Shorts") and meta["status"]["privacyStatus"] == "unlisted"
+    monkeypatch.setenv("YT_PUBLISH_AT", "2026-11-24T16:00:00Z")
+    scheduled = youtube.build_metadata({"title": "X", "shots": []})
+    assert scheduled["status"]["privacyStatus"] == "private" and scheduled["status"]["publishAt"]
+    srt = youtube.build_srt([{"speech_start": 0.5, "speech": 2.25, "narration": "Hello  there."}])
+    assert "00:00:00,500 --> 00:00:02,750" in srt and "Hello there." in srt
