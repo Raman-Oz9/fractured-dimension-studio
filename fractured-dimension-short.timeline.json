@@ -1,0 +1,236 @@
+[
+  {
+    "index": 1,
+    "start": 0.0,
+    "duration": 6.31,
+    "lead": 0.5,
+    "speech": 5.16,
+    "speech_start": 0.5,
+    "narration": "Route Nine crosses the Hollow Mile after midnight. Every driver knows the one rule."
+  },
+  {
+    "index": 2,
+    "start": 6.31,
+    "duration": 4.08,
+    "lead": 0.0,
+    "speech": 3.43,
+    "speech_start": 6.31,
+    "narration": "Never stop after the twelfth stop. Not for anyone."
+  },
+  {
+    "index": 3,
+    "start": 10.39,
+    "duration": 5.14,
+    "lead": 0.0,
+    "speech": 4.49,
+    "speech_start": 10.39,
+    "narration": "Mara had driven this route for twenty years, and she had never once broken it."
+  },
+  {
+    "index": 4,
+    "start": 15.54,
+    "duration": 3.88,
+    "lead": 0.0,
+    "speech": 3.23,
+    "speech_start": 15.54,
+    "narration": "Tonight, rain hammered the roof, and the bus was empty."
+  },
+  {
+    "index": 5,
+    "start": 19.41,
+    "duration": 6.53,
+    "lead": 0.0,
+    "speech": 5.88,
+    "speech_start": 19.41,
+    "narration": "At the twelfth stop, an empty shelter flickered under a single lamp. Mara drove straight past."
+  },
+  {
+    "index": 6,
+    "start": 25.94,
+    "duration": 2.46,
+    "lead": 0.0,
+    "speech": 1.81,
+    "speech_start": 25.94,
+    "narration": "Then she glanced up at the mirror."
+  },
+  {
+    "index": 7,
+    "start": 28.4,
+    "duration": 2.47,
+    "lead": 0.0,
+    "speech": 1.82,
+    "speech_start": 28.4,
+    "narration": "Someone was sitting in the back seat."
+  },
+  {
+    "index": 8,
+    "start": 30.87,
+    "duration": 3.4,
+    "lead": 0.0,
+    "speech": 2.75,
+    "speech_start": 30.87,
+    "narration": "She had checked the doors. They had never opened."
+  },
+  {
+    "index": 9,
+    "start": 34.27,
+    "duration": 4.97,
+    "lead": 0.0,
+    "speech": 4.32,
+    "speech_start": 34.27,
+    "narration": "He was tall and thin, in a long black coat that dripped onto the floor."
+  },
+  {
+    "index": 10,
+    "start": 39.24,
+    "duration": 5.39,
+    "lead": 0.0,
+    "speech": 4.74,
+    "speech_start": 39.24,
+    "narration": "His face was hidden beneath a ragged hat, and his fingers were far too long."
+  },
+  {
+    "index": 11,
+    "start": 44.64,
+    "duration": 1.88,
+    "lead": 0.0,
+    "speech": 1.23,
+    "speech_start": 44.64,
+    "narration": "Tick. Tick. Tick."
+  },
+  {
+    "index": 12,
+    "start": 46.51,
+    "duration": 3.96,
+    "lead": 0.0,
+    "speech": 3.31,
+    "speech_start": 46.51,
+    "narration": "Mara's voice shook. Sir, this bus is out of service."
+  },
+  {
+    "index": 13,
+    "start": 50.47,
+    "duration": 4.34,
+    "lead": 0.0,
+    "speech": 3.69,
+    "speech_start": 50.47,
+    "narration": "He did not answer. He only leaned forward, and the ticking stopped."
+  },
+  {
+    "index": 14,
+    "start": 54.81,
+    "duration": 3.03,
+    "lead": 0.0,
+    "speech": 2.38,
+    "speech_start": 54.81,
+    "narration": "She blinked. He was three rows closer."
+  },
+  {
+    "index": 15,
+    "start": 57.84,
+    "duration": 2.34,
+    "lead": 0.0,
+    "speech": 1.69,
+    "speech_start": 57.84,
+    "narration": "She blinked again. Closer."
+  },
+  {
+    "index": 16,
+    "start": 60.18,
+    "duration": 3.43,
+    "lead": 0.45,
+    "speech": 2.33,
+    "speech_start": 60.63,
+    "narration": "She slammed the accelerator to the floor."
+  },
+  {
+    "index": 17,
+    "start": 63.61,
+    "duration": 5.66,
+    "lead": 0.0,
+    "speech": 5.01,
+    "speech_start": 63.61,
+    "narration": "Trees tore past. Every mile marker read thirteen, and the road never ended."
+  },
+  {
+    "index": 18,
+    "start": 69.27,
+    "duration": 4.92,
+    "lead": 0.0,
+    "speech": 4.27,
+    "speech_start": 69.27,
+    "narration": "Then she saw what he carried: a long wooden stick, covered in notches."
+  },
+  {
+    "index": 19,
+    "start": 74.2,
+    "duration": 4.44,
+    "lead": 0.0,
+    "speech": 3.79,
+    "speech_start": 74.2,
+    "narration": "Hundreds of notches. One for every driver who ever stopped."
+  },
+  {
+    "index": 20,
+    "start": 78.64,
+    "duration": 6.29,
+    "lead": 0.0,
+    "speech": 5.64,
+    "speech_start": 78.64,
+    "narration": "And Mara remembered. Years ago, in the rain, she had stopped once, for a child at the twelfth stop."
+  },
+  {
+    "index": 21,
+    "start": 84.92,
+    "duration": 4.28,
+    "lead": 0.0,
+    "speech": 3.63,
+    "speech_start": 84.92,
+    "narration": "But the child never wanted a ride. She wanted a driver."
+  },
+  {
+    "index": 22,
+    "start": 89.21,
+    "duration": 5.07,
+    "lead": 0.7,
+    "speech": 3.72,
+    "speech_start": 89.91,
+    "narration": "The bus rolled to a stop. The doors opened by themselves."
+  },
+  {
+    "index": 23,
+    "start": 94.27,
+    "duration": 3.03,
+    "lead": 0.0,
+    "speech": 2.38,
+    "speech_start": 94.27,
+    "narration": "The Tally Man carved one final notch."
+  },
+  {
+    "index": 24,
+    "start": 97.3,
+    "duration": 5.93,
+    "lead": 0.0,
+    "speech": 5.28,
+    "speech_start": 97.3,
+    "narration": "Now Mara waits in the shelter at the twelfth stop, soaked and smiling, watching the headlights."
+  },
+  {
+    "index": 25,
+    "start": 103.23,
+    "duration": 6.17,
+    "lead": 0.0,
+    "speech": 5.52,
+    "speech_start": 103.23,
+    "narration": "So if you ever drive Route Nine after midnight, and someone waits in the rain at the twelfth stop..."
+  },
+  {
+    "index": 26,
+    "start": 109.41,
+    "duration": 2.92,
+    "lead": 0.0,
+    "speech": 1.12,
+    "speech_start": 109.41,
+    "narration": "Keep driving."
+  }
+]
