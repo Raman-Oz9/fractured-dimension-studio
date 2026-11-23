@@ -178,17 +178,21 @@ jobs:
       - name: Render vertical video with narration
         run: fractured-dimension render "$STORY_PATH" --output output/fractured-dimension-short.mp4
 
-      - name: Upload to YouTube
+      - name: Hand the video to Zapier (posts to YouTube)
         if: ${{ inputs.publish && inputs.publish != 'none' }}
         env:
-          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
-          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
-          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          ZAPIER_HOOK_URL: ${{ secrets.ZAPIER_HOOK_URL }}
           YT_PRIVACY: ${{ inputs.publish }}
           YT_PUBLISH_AT: ${{ inputs.publish_at }}
         run: |
-          test -n "$YT_REFRESH_TOKEN" || (echo "::error::Add the YT_CLIENT_ID, YT_CLIENT_SECRET and YT_REFRESH_TOKEN secrets (see docs/youtube-setup.md)." && exit 1)
-          fractured-dimension publish "$STORY_PATH" output/fractured-dimension-short.mp4
+          set -e
+          test -n "$ZAPIER_HOOK_URL" || (echo "::error::Add the ZAPIER_HOOK_URL secret (see docs/youtube-setup.md)." && exit 1)
+          EP=$(python -c "import json; print(json.load(open('$STORY_PATH')).get('episode_id','ep').lower())")
+          TAG="$EP-run${{ github.run_number }}"
+          cp output/fractured-dimension-short.mp4 "output/$TAG.mp4"
+          gh release create "$TAG" "output/$TAG.mp4" --title "$TAG" --notes "Rendered video for YouTube" --repo "${{ github.repository }}"
+          fractured-dimension publish-hook "$STORY_PATH" "https://github.com/${{ github.repository }}/releases/download/$TAG/$TAG.mp4"
 
       - name: Upload generated video
         uses: actions/upload-artifact@v4

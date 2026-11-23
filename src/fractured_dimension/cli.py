@@ -28,6 +28,10 @@ def main() -> None:
     publish.add_argument("story")
     publish.add_argument("video")
 
+    hook = sub.add_parser("publish-hook", help="Send the video URL and metadata to the Zapier webhook (needs ZAPIER_HOOK_URL)")
+    hook.add_argument("story")
+    hook.add_argument("video_url")
+
     args = parser.parse_args()
     if args.command == "create-example":
         path = create_example(args.output)
@@ -41,6 +45,10 @@ def main() -> None:
         story = load_story(args.story)
         result = render_story(story, args.output)
         print(f"Rendered video: {result}")
+    elif args.command == "publish-hook":
+        from .youtube import send_to_zapier
+
+        send_to_zapier(args.story, args.video_url)
     elif args.command == "publish":
         from pathlib import Path
 

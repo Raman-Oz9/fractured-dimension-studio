@@ -123,3 +123,26 @@ def publish(story_path: str | Path, video: str | Path, timeline_path: str | Path
         except Exception as exc:  # captions are a bonus; never fail the upload over them
             print(f"::warning::Caption track not uploaded: {exc}")
     return video_id
+
+
+def zapier_payload(story: dict[str, Any], video_url: str) -> dict[str, Any]:
+    """Flat JSON for a Zapier "Catch Hook" -> YouTube "Upload Video" Zap."""
+    meta = build_metadata(story)
+    return {
+        "title": meta["snippet"]["title"],
+        "description": meta["snippet"]["description"],
+        "tags": ",".join(meta["snippet"]["tags"]),
+        "privacy_status": meta["status"]["privacyStatus"],
+        "publish_at": meta["status"].get("publishAt", ""),
+        "video_url": video_url,
+        "episode_id": story.get("episode_id", ""),
+    }
+
+
+def send_to_zapier(story_path: str | Path, video_url: str) -> None:
+    hook = os.environ["ZAPIER_HOOK_URL"]
+    story = json.loads(Path(story_path).read_text(encoding="utf-8"))
+    payload = zapier_payload(story, video_url)
+    req = urllib.request.Request(hook, data=json.dumps(payload).encode(), headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=60) as response:
+        print(f"Zapier hook answered {response.status}: {payload['title']}")
